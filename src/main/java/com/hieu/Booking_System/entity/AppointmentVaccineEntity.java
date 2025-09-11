@@ -1,7 +1,10 @@
 package com.hieu.Booking_System.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "appointment_vaccine")
 public class AppointmentVaccineEntity extends BaseEntity {

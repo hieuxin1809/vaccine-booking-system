@@ -36,9 +36,6 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
     private List<AppointmentEntity> patientAppointments;
 
-    @OneToMany(mappedBy = "doctor" , fetch = FetchType.LAZY)
-    private List<AppointmentEntity> doctorAppointments;
-
     @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
     private List<NotificationEntity> notifications;
 }

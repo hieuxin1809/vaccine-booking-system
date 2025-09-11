@@ -17,6 +17,12 @@ public enum ErrorCode {
     PASSWORD_INVALID(1004,"Password Invalid" , HttpStatus.BAD_REQUEST),
     VACCINE_NOT_FOUND(1005,"Vaccine not found" , HttpStatus.NOT_FOUND),
     LOCATION_NOT_FOUND(1006,"Location not found" , HttpStatus.NOT_FOUND),
+    APPOINTMENT_NOT_FOUND(1007,"Appointment not found" , HttpStatus.NOT_FOUND),
+    APPOINTMENT_DUPLICATED(1008,"Appointment already ordered" , HttpStatus.CONFLICT),
+    APPOINTMENT_CONFLICT(1009,"Appointment Conflict" , HttpStatus.CONFLICT),
+    INTERRUPTED_LOCK(1010,"Interrupted while waiting for lock" , HttpStatus.BAD_REQUEST),
+    INVALID_DATETIME(1011,"DateTime invalid" , HttpStatus.BAD_REQUEST),
+
     ;
     private int code;
     private String message;

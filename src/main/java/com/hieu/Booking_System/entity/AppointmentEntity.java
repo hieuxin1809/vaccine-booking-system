@@ -3,6 +3,7 @@ package com.hieu.Booking_System.entity;
 import com.hieu.Booking_System.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -36,7 +37,4 @@ public class AppointmentEntity extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     private LocationEntity location;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private UserEntity doctor;
 }
