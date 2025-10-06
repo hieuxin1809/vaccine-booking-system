@@ -22,6 +22,11 @@ public enum ErrorCode {
     APPOINTMENT_CONFLICT(1009,"Appointment Conflict" , HttpStatus.CONFLICT),
     INTERRUPTED_LOCK(1010,"Interrupted while waiting for lock" , HttpStatus.BAD_REQUEST),
     INVALID_DATETIME(1011,"DateTime invalid" , HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND(1012,"Role not found" , HttpStatus.NOT_FOUND),
+    PERMISSION_NOT_FOUND(1013,"Permission not found" , HttpStatus.NOT_FOUND),
+    UNAUTHENTICATED(1014,"Unauthenticated" , HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(1015,"UNAUTHORIZED" , HttpStatus.UNAUTHORIZED),
+    TOKEN_EXPIRED(1016,"Token expired" , HttpStatus.UNAUTHORIZED),
 
     ;
     private int code;

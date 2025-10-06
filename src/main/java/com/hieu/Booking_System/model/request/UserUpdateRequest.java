@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -15,5 +17,5 @@ public class UserUpdateRequest {
     @Size(min = 8,message = "PASSWORD_INVALID")
     String password;
     String address;
-    Role role;
+    List<String> roles;
 }
