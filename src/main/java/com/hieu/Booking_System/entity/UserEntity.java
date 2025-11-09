@@ -31,6 +31,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private String phone;
     private LocalDate dob;
     private Character gender;
+    private boolean emailVerified = false;
+
+    private String verificationToken;
 
     @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
     private List<AppointmentEntity> patientAppointments;

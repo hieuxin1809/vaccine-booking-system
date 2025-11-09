@@ -1,11 +1,13 @@
 package com.hieu.Booking_System.controller;
 
 import com.hieu.Booking_System.enums.AppointmentStatus;
+import com.hieu.Booking_System.enums.PaymentGateway;
 import com.hieu.Booking_System.model.request.AppointmentCreateRequest;
 import com.hieu.Booking_System.model.request.AppointmentUpdateRequest;
 import com.hieu.Booking_System.model.response.ApiResponse;
 import com.hieu.Booking_System.model.response.AppointmentResponse;
 import com.hieu.Booking_System.service.AppointmentService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/appointment")
@@ -22,10 +25,27 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppointmentController {
     AppointmentService appointmentService;
+//    @PostMapping
+//    ApiResponse<AppointmentResponse> createAppointment(@RequestBody @Valid AppointmentCreateRequest appointmentCreateRequest){
+//        return ApiResponse.<AppointmentResponse>builder()
+//                .data(appointmentService.createAppointment(appointmentCreateRequest))
+//                .build();
+//    }
     @PostMapping
-    ApiResponse<AppointmentResponse> createAppointment(@RequestBody @Valid AppointmentCreateRequest appointmentCreateRequest){
-        return ApiResponse.<AppointmentResponse>builder()
-                .data(appointmentService.createAppointment(appointmentCreateRequest))
+    public ApiResponse<Map<String, Object>> createAppointment(
+            @RequestBody @Valid AppointmentCreateRequest request,
+            @RequestParam(defaultValue = "VNPAY") PaymentGateway gateway,
+            HttpServletRequest httpRequest) {
+
+        Map<String, Object> result = appointmentService.createAppointmentWithPayment(
+                request,
+                gateway,
+                httpRequest);
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(200)
+                .message("Tạo lịch hẹn và URL thanh toán thành công")
+                .data(result)
                 .build();
     }
     @GetMapping("/{appointmentId}")
@@ -58,6 +78,7 @@ public class AppointmentController {
                 .data(appointmentService.getAllAppointmentsByLocationId(locationId))
                 .build();
     }
+    // sửa đổi trạng thái
     @PatchMapping("/{id}/status")
     ApiResponse<AppointmentResponse> updateAppointmentStatus(@PathVariable Long id, @RequestParam AppointmentStatus status){
         return ApiResponse.<AppointmentResponse>builder()

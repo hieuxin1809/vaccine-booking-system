@@ -28,4 +28,7 @@ public class VaccineEntity extends BaseEntity{
 
     @OneToMany(mappedBy = "vaccine" , fetch = FetchType.LAZY)
     private List<AppointmentVaccineEntity> appointmentVaccine;
+
+    @OneToMany(mappedBy = "vaccine" , fetch = FetchType.LAZY)
+    private List<InventoryEntity> inventory;
 }

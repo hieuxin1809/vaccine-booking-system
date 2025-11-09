@@ -18,3 +18,26 @@ spring:
     signerKey: "ODytKslsP4ccjT5fNo+UrA6umxm5zO/INSWB84GdDVndJzbs2lyRPcMaWCzCa18Z"
     valid-duration: 3600
     refreshable-duration: 7
+  brevo:
+    api-key: "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"
+    sender-email: "trunghieu6bttt@gmail.com"
+    sender-name: "Booking System"
+  app:
+    base-url: "http://localhost:8080"
+  vnpay:
+    tmnCode: "UJ0CL6XO"
+    hashSecret: "CDDZK8313JM5QGBRQ7IAEFEADQOZ6BBZ"
+    apiUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+    # Dùng link Ngrok hiện tại của bạn
+    returnUrl: "http://localhost:8080/payment/vnpay/callback"
+  paypal:
+    clientId: "AfQvtYaXkCSyaDdKT_f-sY3ZChQm2CXDMx94N0W3XBscBmLG3TgGIT4UzINwxjbFAOG6w19I29dWjMOk"
+    clientSecret: "EEfkMKJnXxvIUnpvoX0PL4stsgUdDFBADTXd-sPHsmyJAqjOO5S8NjPkgiApjqnZ6vv2j84HVPzMm5wm"
+    mode: "sandbox"
+    success-url: "http://localhost:8080/payment/paypal/success"
+    cancel-url: "http://localhost:8080/payment/paypal/cancel"
+  logging:
+    level:
+      com.hieu.Booking_System.service.PaymentService: DEBUG
+      com.hieu.Booking_System.controller.PaymentController: DEBUG
+      org.springframework.web: DEBUG

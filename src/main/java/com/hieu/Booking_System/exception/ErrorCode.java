@@ -27,6 +27,13 @@ public enum ErrorCode {
     UNAUTHENTICATED(1014,"Unauthenticated" , HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1015,"UNAUTHORIZED" , HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED(1016,"Token expired" , HttpStatus.UNAUTHORIZED),
+    INVENTORY_EXIST(1017,"Inventory already exists for this location and vaccine" , HttpStatus.BAD_REQUEST),
+    INVENTORY_NOT_FOUND(1018,"Inventory not found" , HttpStatus.NOT_FOUND),
+    OUT_OF_STOCK(1019,"Out of stock" , HttpStatus.BAD_REQUEST),
+    INVALID_TOKEN_REGISTER(1020,"Invalid token register" , HttpStatus.BAD_REQUEST),
+    EMAIL_ALREADY_VERIFIED(1021,"Email already verified" , HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_VERIFIED(1022,"Email not verified" , HttpStatus.BAD_REQUEST),
+    INTERNAL_SERVER_ERROR(1023,"Internal server error" , HttpStatus.INTERNAL_SERVER_ERROR)
 
     ;
     private int code;

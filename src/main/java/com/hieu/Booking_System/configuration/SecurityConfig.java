@@ -1,6 +1,5 @@
 package com.hieu.Booking_System.configuration;
 
-import com.hieu.Booking_System.enums.Role;
 import com.hieu.Booking_System.service.UserDetailServiceCustomizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ import javax.crypto.spec.SecretKeySpec;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS =
-            {"/user","/auth/log-in","/role","/auth/logout","/auth/introspect","/auth/refresh"};
+            {"/user","/payment/paypal/success","/payment/paypal/cancel","/payment/vnpay/callback","/payment/create","/payment/status","/auth/log-in","/role","/auth/logout","/auth/verify","/auth/register","/auth/introspect","/auth/refresh","/appointment"};
 
     private final CustomJwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsServiceCustomizer;
@@ -45,6 +44,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).permitAll()
                 .anyRequest().authenticated()
         );
         http.oauth2ResourceServer(oauth2 ->

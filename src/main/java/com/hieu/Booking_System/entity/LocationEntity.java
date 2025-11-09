@@ -20,4 +20,7 @@ public class LocationEntity extends BaseEntity{
 
     @OneToMany(mappedBy = "location" , fetch = FetchType.LAZY)
     private List<WorkingHourEntity> workingHours;
+
+    @OneToMany(mappedBy = "location" , fetch = FetchType.LAZY)
+    private List<InventoryEntity> inventory;
 }

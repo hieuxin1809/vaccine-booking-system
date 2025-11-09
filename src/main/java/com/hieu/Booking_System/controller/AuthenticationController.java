@@ -1,13 +1,7 @@
 package com.hieu.Booking_System.controller;
 
-import com.hieu.Booking_System.model.request.LoginRequest;
-import com.hieu.Booking_System.model.request.VerifyTokenRequest;
-import com.hieu.Booking_System.model.request.LogoutRequest;
-import com.hieu.Booking_System.model.request.RefreshRequest;
-import com.hieu.Booking_System.model.response.ApiResponse;
-import com.hieu.Booking_System.model.response.LoginResponse;
-import com.hieu.Booking_System.model.response.RefreshTokenResponse;
-import com.hieu.Booking_System.model.response.VerifyTokenResponse;
+import com.hieu.Booking_System.model.request.*;
+import com.hieu.Booking_System.model.response.*;
 import com.hieu.Booking_System.service.AuthenticationService;
 import com.hieu.Booking_System.service.JwtService;
 import com.nimbusds.jose.JOSEException;
@@ -28,8 +22,14 @@ public class AuthenticationController {
     @PostMapping("/log-in")
     ApiResponse<LoginResponse> authenticate(@RequestBody LoginRequest loginRequest) {
        return ApiResponse.<LoginResponse>builder()
-               .data(authenticationService.authenticate(loginRequest))
+               .data(authenticationService.login(loginRequest))
                .build();
+    }
+    @PostMapping("/register")
+    ApiResponse<RegisterResponse> register(@RequestBody RegisterRequest request) {
+        return ApiResponse.<RegisterResponse>builder()
+                .data(authenticationService.register(request))
+                .build();
     }
     @PostMapping("/verify-token")
     ApiResponse<VerifyTokenResponse> verifyToken(@RequestBody VerifyTokenRequest request) throws ParseException, JOSEException {
@@ -47,6 +47,14 @@ public class AuthenticationController {
     ApiResponse<RefreshTokenResponse> refreshToken(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
         return ApiResponse.<RefreshTokenResponse>builder()
                 .data(authenticationService.refresh(request))
+                .build();
+    }
+    @GetMapping("/verify")
+    ApiResponse<Void> verifyEmail(@RequestParam("token") String token) {
+        authenticationService.verifyEmail(token);
+        // Tùy chọn: Chuyển hướng người dùng đến trang thành công
+        return ApiResponse.<Void>builder()
+                .message("Xác nhận email thành công. Bạn đã có thể đăng nhập.")
                 .build();
     }
 }
