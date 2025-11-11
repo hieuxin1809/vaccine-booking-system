@@ -26,6 +26,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -67,19 +68,30 @@ public class AuthenticationService{
                 .build();
     }
     public LoginResponse login(LoginRequest loginRequest) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
-        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
-        UserEntity userEntity = (UserEntity) authenticate.getPrincipal();
-        if(!userEntity.isEmailVerified()) {
-            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
+            Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+            UserEntity userEntity = (UserEntity) authenticate.getPrincipal();
+
+            if (!userEntity.isEmailVerified()) {
+                throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+            }
+
+            String accessToken = jwtService.generateAccessToken(userEntity);
+            String refreshToken = jwtService.generateRefreshToken(userEntity);
+
+            return LoginResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+        } catch (BadCredentialsException e) {
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
-        String accessToken = jwtService.generateAccessToken(userEntity);
-        String refreshToken = jwtService.generateRefreshToken(userEntity);
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
     }
+
     public void verifyEmail(String token) {
         // 1. Tìm người dùng bằng verificationToken
         UserEntity user = userRepository.findByVerificationToken(token)

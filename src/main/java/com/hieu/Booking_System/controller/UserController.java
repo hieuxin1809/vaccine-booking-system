@@ -1,20 +1,25 @@
 package com.hieu.Booking_System.controller;
 
 import com.hieu.Booking_System.entity.UserEntity;
+import com.hieu.Booking_System.model.request.ChangePasswordRequest;
 import com.hieu.Booking_System.model.request.UserCreateRequest;
 import com.hieu.Booking_System.model.request.UserUpdateRequest;
 import com.hieu.Booking_System.model.response.ApiResponse;
 import com.hieu.Booking_System.model.response.UserResponse;
+import com.hieu.Booking_System.service.CloudinaryService;
 import com.hieu.Booking_System.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ import java.util.List;
 @Slf4j
 public class UserController {
     UserService userService;
+    CloudinaryService cloudinaryService;
     @PostMapping()
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest user) {
         return ApiResponse.<UserResponse>builder()
@@ -30,6 +36,7 @@ public class UserController {
                 .build();
     }
     @GetMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<UserResponse>> getAllUsers() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -40,6 +47,7 @@ public class UserController {
                 .build();
     }
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')  ")
     ApiResponse<UserResponse> getUser(@PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .data(userService.getUserById(id))
@@ -61,6 +69,30 @@ public class UserController {
     ApiResponse<UserResponse> GetMyInfo() {
         return ApiResponse.<UserResponse>builder()
                 .data(userService.getMyInfo())
+                .build();
+    }
+    @PutMapping("/{userId}/password")
+    public ApiResponse<Void> changePassWord(
+            @PathVariable Long userId,
+            @RequestBody ChangePasswordRequest request
+    ){
+        userService.changePassword(userId, request);
+        return ApiResponse.<Void>builder()
+                .message("change password successfully")
+                .build();
+    }
+    @PutMapping("/{userId}/avatar")
+    public ApiResponse<UserResponse> updateAvatar(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        // Upload lên Cloudinary và nhận về Map chứa các thông tin
+        Map<String, Object> uploadResult = cloudinaryService.uploadFile(file, "avatars");
+
+        // Lấy ra URL ảnh từ kết quả upload
+        String imageUrl = (String) uploadResult.get("secure_url");
+        return ApiResponse.<UserResponse>builder()
+                .data(userService.updateAvatarUrl(userId, imageUrl))
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import com.hieu.Booking_System.enums.Role;
 import com.hieu.Booking_System.exception.AppException;
 import com.hieu.Booking_System.exception.ErrorCode;
 import com.hieu.Booking_System.mapper.UserMapper;
+import com.hieu.Booking_System.model.request.ChangePasswordRequest;
 import com.hieu.Booking_System.model.request.UserCreateRequest;
 import com.hieu.Booking_System.model.request.UserUpdateRequest;
 import com.hieu.Booking_System.model.response.UserResponse;
@@ -53,7 +54,7 @@ public class UserService {
         List<UserEntity> userEntities = userRepository.GetAllActiveUser();
         return userEntities.stream().map(userMapper::toUserResponse).collect(Collectors.toList());
     }
-    @PostAuthorize("returnObject.email == authentication.name")
+    @PostAuthorize("hasRole('ADMIN') or returnObject.email == authentication.name")
     public UserResponse getUserById(Long id) {
         log.info("in method getUserById");
         UserEntity userEntity = userRepository.findById(id)
@@ -78,7 +79,7 @@ public class UserService {
         userRepository.save(userEntity);
         return userMapper.toUserResponse(userEntity);
     }
-
+    @PreAuthorize("principal.username == authentication.name")
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
@@ -86,5 +87,23 @@ public class UserService {
                 .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toUserResponse(userEntity);
     }
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.INVALID_OLD_PASSWORD);
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("User {} changed password", userId);
+    }
+    public UserResponse updateAvatarUrl(Long userId, String avatarUrl) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+        return userMapper.toUserResponse(user);
+    }
 }

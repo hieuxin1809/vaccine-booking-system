@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -55,6 +56,7 @@ public class AppointmentController {
                 .build();
     }
     @GetMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<AppointmentResponse>> getAllAppointment(){
         return ApiResponse.<List<AppointmentResponse>>builder()
                 .data(appointmentService.getAllAppointments())

@@ -36,6 +36,10 @@ spring:
     mode: "sandbox"
     success-url: "http://localhost:8080/payment/paypal/success"
     cancel-url: "http://localhost:8080/payment/paypal/cancel"
+  cloudinary:
+    cloud-name: "di44iopzn"
+    api-key: "915861916668146"
+    api-secret: "rzlka9b8lzFjaMOzDeQ141md5n0"
   logging:
     level:
       com.hieu.Booking_System.service.PaymentService: DEBUG

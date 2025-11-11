@@ -33,7 +33,9 @@ public enum ErrorCode {
     INVALID_TOKEN_REGISTER(1020,"Invalid token register" , HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_VERIFIED(1021,"Email already verified" , HttpStatus.BAD_REQUEST),
     EMAIL_NOT_VERIFIED(1022,"Email not verified" , HttpStatus.BAD_REQUEST),
-    INTERNAL_SERVER_ERROR(1023,"Internal server error" , HttpStatus.INTERNAL_SERVER_ERROR)
+    INTERNAL_SERVER_ERROR(1023,"Internal server error" , HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_OLD_PASSWORD(1024, "invalid old password", HttpStatus.BAD_REQUEST),
+    INVALID_CREDENTIALS(1025 , "email or password is incorrect", HttpStatus.UNAUTHORIZED)
 
     ;
     private int code;

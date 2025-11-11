@@ -1,6 +1,7 @@
 package com.hieu.Booking_System.entity;
 
 import com.hieu.Booking_System.enums.Role;
+import com.hieu.Booking_System.enums.UserStatus;
 import jakarta.persistence.*;
 import jdk.jfr.DataAmount;
 import lombok.AllArgsConstructor;
@@ -31,7 +32,11 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private String phone;
     private LocalDate dob;
     private Character gender;
+    private String avatarUrl;
     private boolean emailVerified = false;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.ACTIVE;
 
     private String verificationToken;
 
@@ -46,12 +51,17 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        if (roles == null) return Collections.emptyList();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (RoleEntity role : roles) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+        }
+        return authorities;
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return this.email;
     }
 
     @Override

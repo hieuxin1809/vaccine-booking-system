@@ -45,6 +45,7 @@ public class AppointmentService {
     VaccineMapper vaccineMapper;
     AppointmentMapper appointmentMapper;
     RedissonClient redisson;
+
     public Map<String, Object> createAppointmentWithPayment(
             AppointmentCreateRequest request,
             PaymentGateway paymentGateway,

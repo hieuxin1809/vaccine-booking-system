@@ -34,17 +34,32 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS =
-            {"/user","/payment/paypal/success","/payment/paypal/cancel","/payment/vnpay/callback","/payment/create","/payment/status","/auth/log-in","/role","/auth/logout","/auth/verify","/auth/register","/auth/introspect","/auth/refresh","/appointment"};
-
+    private static final String[] PUBLIC_POST_ENDPOINTS = {
+            "/auth/**",
+            "/payment/**",
+            "/appointment" // tạo lịch hẹn
+    };
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
+            "/auth/**",
+            "/payment/**",
+            "/appointment/**",
+            "/vaccine/**",
+            "/location/**"
+    };
     private final CustomJwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsServiceCustomizer;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
+                // Cho phép truy cập tài nguyên tĩnh nếu có (nếu deploy frontend trong Spring)
+                .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+
+                // Các endpoint quản lý yêu cầu đăng nhập
+                .requestMatchers("/user/**", "/inventory/**", "/role/**", "/permission/**")
+                .authenticated()
                 .anyRequest().authenticated()
         );
         http.oauth2ResourceServer(oauth2 ->
