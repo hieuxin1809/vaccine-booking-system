@@ -67,6 +67,7 @@ public class UserService {
         userEntity.setDeletedAt(LocalDateTime.now());
         userRepository.save(userEntity);
     }
+    @PreAuthorize("hasRole('ADMIN') or @userService.getEmailById(#id) == authentication.name")
     public UserResponse updateUserById(Long id, UserUpdateRequest userUpdateRequest) {
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_FOUND));
@@ -79,7 +80,7 @@ public class UserService {
         userRepository.save(userEntity);
         return userMapper.toUserResponse(userEntity);
     }
-    @PreAuthorize("principal.username == authentication.name")
+    @PreAuthorize("isAuthenticated()")
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
@@ -87,6 +88,7 @@ public class UserService {
                 .orElseThrow(() ->new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toUserResponse(userEntity);
     }
+    @PreAuthorize("hasRole('ADMIN') or @userService.getEmailById(#id) == authentication.name")
     public void changePassword(Long userId, ChangePasswordRequest request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -98,6 +100,7 @@ public class UserService {
         userRepository.save(user);
         log.info("User {} changed password", userId);
     }
+    @PreAuthorize("hasRole('ADMIN') or @userService.getEmailById(#id) == authentication.name")
     public UserResponse updateAvatarUrl(Long userId, String avatarUrl) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -105,5 +108,10 @@ public class UserService {
         user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
         return userMapper.toUserResponse(user);
+    }
+    public String getEmailById(Long userId) {
+        return userRepository.findById(userId)
+                .map(UserEntity::getEmail)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 }

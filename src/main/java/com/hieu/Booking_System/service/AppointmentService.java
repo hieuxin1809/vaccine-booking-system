@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -135,7 +137,7 @@ public class AppointmentService {
             inventoryRepository.save(inventory);
         }
     }
-
+    @PreAuthorize("hasRole('ADMIN') or @appointmentService.isOwner(#id, authentication.name)")
     public void deleteAppointment(Long id) {
         AppointmentEntity appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -150,20 +152,20 @@ public class AppointmentService {
             }
         }
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     public List<AppointmentResponse> getAllAppointments() {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.GetAllActiveAppointments();
         return appointmentEntities.stream()
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
-
+    @PreAuthorize("hasRole('ADMIN') or @appointmentService.isOwner(#id, authentication.name)")
     public AppointmentResponse getAppointmentById(Long id) {
         AppointmentEntity appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
         return appointmentMapper.toAppointmentResponse(appointment);
     }
-
+    @PreAuthorize("hasRole('ADMIN') or @userService.myInfo().id == #id")
     public List<AppointmentResponse> getAllAppointmentsByUserId(Long id) {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.findByUser_Id(id);
         if(appointmentEntities.isEmpty()){
@@ -173,7 +175,7 @@ public class AppointmentService {
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     public List<AppointmentResponse> getAllAppointmentsByLocationId(Long id) {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.findByLocation_Id(id);
         if(appointmentEntities.isEmpty()){
@@ -183,7 +185,7 @@ public class AppointmentService {
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     public AppointmentResponse updateAppointmentStatus(Long id, AppointmentStatus status) {
         AppointmentEntity appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
@@ -191,7 +193,7 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
         return appointmentMapper.toAppointmentResponse(appointment);
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     public List<AppointmentResponse> getAllAppointmentByDate(LocalDate date) {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.findByAppointmentDate(date);
         if(appointmentEntities.isEmpty()){
@@ -217,4 +219,10 @@ public class AppointmentService {
     private boolean checkAppointmentExists(Long id , LocalDate date , LocalTime time) {
         return appointmentRepository.existsByLocation_IdAndAppointmentDateAndAppointmentTime(id, date, time);
     }
+    public boolean isOwner(Long appointmentId, String email) {
+        return appointmentRepository.findById(appointmentId)
+                .map(appointment -> appointment.getUser().getEmail().equals(email))
+                .orElse(false);
+    }
+
 }

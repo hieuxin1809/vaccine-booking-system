@@ -1,5 +1,6 @@
 package com.hieu.Booking_System.model.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PermissionRequest {
+    @NotBlank(message = "NAME_REQUIRED")
     String name;
     String description;
 }

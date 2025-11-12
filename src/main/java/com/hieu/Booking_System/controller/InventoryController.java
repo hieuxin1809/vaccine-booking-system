@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,33 +24,38 @@ import java.util.List;
 public class InventoryController {
     InventoryService inventoryService;
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<InventoryResponse> createInventory(@RequestBody @Valid InventoryRequest request) {
         return ApiResponse.<InventoryResponse>builder()
                 .data(inventoryService.createInventory(request))
                 .build();
     }
     @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<InventoryResponse>> getAllInventory() {
         return ApiResponse.<List<InventoryResponse>>builder()
                 .data(inventoryService.getAll())
                 .build();
     }
     @GetMapping("/{id}")
-    ApiResponse<InventoryResponse> getUser(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<InventoryResponse> getInventory(@PathVariable Long id) {
         return ApiResponse.<InventoryResponse>builder()
                 .data(inventoryService.getById(id))
                 .build();
     }
     @DeleteMapping("/{id}")
-    ApiResponse<Void> deleteUser(@PathVariable Long id){
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<Void> deleteInventory(@PathVariable Long id){
         inventoryService.deleteInventory(id);
         return ApiResponse.<Void>builder()
                 .build();
     }
     @PutMapping("/{id}")
-    ApiResponse<InventoryResponse> updateUser(@PathVariable("id") Long userId, @RequestBody InventoryRequest request) {
+    @PreAuthorize("hasRole('ADMIN')")
+    ApiResponse<InventoryResponse> updateInventory(@PathVariable("id") Long id, @RequestBody InventoryRequest request) {
         return ApiResponse.<InventoryResponse>builder()
-                .data(inventoryService.updateInventory(userId, request))
+                .data(inventoryService.updateInventory(id, request))
                 .build();
     }
 }

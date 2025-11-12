@@ -6,6 +6,7 @@ import com.hieu.Booking_System.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -25,6 +26,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/create")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> createPayment(
             @RequestParam Long appointmentId,
             @RequestParam(defaultValue = "VNPAY") PaymentGateway gateway,

@@ -8,6 +8,7 @@ import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -38,6 +39,7 @@ public class AuthenticationController {
                 .build();
     }
     @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
     ApiResponse<Void> logout(@RequestHeader("Authorization") LogoutRequest logoutRequest) throws ParseException, JOSEException {
         authenticationService.logout(logoutRequest);
         return ApiResponse.<Void>builder()

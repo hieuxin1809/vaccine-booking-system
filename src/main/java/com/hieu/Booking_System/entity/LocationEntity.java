@@ -11,8 +11,13 @@ import java.util.List;
 @Table(name = "location")
 @Data
 public class LocationEntity extends BaseEntity{
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String address;
+
+    @Column(nullable = false)
     private String phone;
 
     @OneToMany(mappedBy = "location" , fetch = FetchType.LAZY)

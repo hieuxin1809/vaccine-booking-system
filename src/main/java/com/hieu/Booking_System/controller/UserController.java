@@ -47,13 +47,14 @@ public class UserController {
                 .build();
     }
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')  ")
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<UserResponse> getUser(@PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .data(userService.getUserById(id))
                 .build();
     }
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<Void> deleteUser(@PathVariable Long id){
         userService.deleteUserById(id);
         return ApiResponse.<Void>builder()

@@ -35,7 +35,22 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(1022,"Email not verified" , HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(1023,"Internal server error" , HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_OLD_PASSWORD(1024, "invalid old password", HttpStatus.BAD_REQUEST),
-    INVALID_CREDENTIALS(1025 , "email or password is incorrect", HttpStatus.UNAUTHORIZED)
+    INVALID_CREDENTIALS(1025 , "email or password is incorrect", HttpStatus.UNAUTHORIZED),
+    NAME_REQUIRED(1026 , "Name is required", HttpStatus.BAD_REQUEST),
+    PASSWORD_REQUIRED(1027 , "Password is required", HttpStatus.BAD_REQUEST),
+    EMAIL_REQUIRED(1028 , "Email is required", HttpStatus.BAD_REQUEST),
+    OLD_PASSWORD_REQUIRED(1029 , "Old password is required", HttpStatus.BAD_REQUEST),
+    NEW_PASSWORD_REQUIRED(1030 , "New password is required", HttpStatus.BAD_REQUEST),
+    PERMISSION_REQUIRED(1031 , "Permission is required", HttpStatus.BAD_REQUEST),
+    USER_ID_REQUIRED(1032 , "User ID is required", HttpStatus.BAD_REQUEST),
+    LOCATION_ID_REQUIRED(1033 , "Location ID is required", HttpStatus.BAD_REQUEST),
+    VACCINE_IDS_REQUIRED(1034 , "Vaccine IDs are required", HttpStatus.BAD_REQUEST),
+    APPOINTMENT_TIME_REQUIRED(1035,"appointment time is required",HttpStatus.BAD_REQUEST),
+    APPOINTMENT_DATE_REQUIRED(1036,"appointment date is required",HttpStatus.BAD_REQUEST),
+    APPOINTMENT_DATE_MUST_BE_IN_FUTURE(1037,"appointment must be in future",HttpStatus.BAD_REQUEST),
+    PRICE_REQUIRED(1038,"price is required" , HttpStatus.BAD_REQUEST),
+    PRICE_MUST_BE_POSITIVE(1039,"price must be positive",HttpStatus.BAD_REQUEST),
+    DOSES_MUST_BE_AT_LEAST_1(1040,"does must be at least 1",HttpStatus.BAD_REQUEST)
 
     ;
     private int code;

@@ -22,9 +22,12 @@ import java.util.*;
 @AllArgsConstructor
 @Builder
 public class UserEntity extends BaseEntity implements UserDetails {
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String password;
+
     @Column(unique = true, nullable = false)
     private String email;
 

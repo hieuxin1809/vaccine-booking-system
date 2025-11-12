@@ -26,13 +26,8 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppointmentController {
     AppointmentService appointmentService;
-//    @PostMapping
-//    ApiResponse<AppointmentResponse> createAppointment(@RequestBody @Valid AppointmentCreateRequest appointmentCreateRequest){
-//        return ApiResponse.<AppointmentResponse>builder()
-//                .data(appointmentService.createAppointment(appointmentCreateRequest))
-//                .build();
-//    }
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Object>> createAppointment(
             @RequestBody @Valid AppointmentCreateRequest request,
             @RequestParam(defaultValue = "VNPAY") PaymentGateway gateway,

@@ -16,9 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class VaccineEntity extends BaseEntity{
+    @Column(unique = true,nullable = false)
     private String name;
     private String description;
     private String manufacturer;
+
+    @Column(nullable = false)
     private BigDecimal price;
 
     @Column(name = "doses_required")

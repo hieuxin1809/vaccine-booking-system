@@ -12,9 +12,10 @@ import java.util.Date;
 @AllArgsConstructor
 @Table(name = "inventory")
 public class InventoryEntity extends BaseEntity{
+    @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "expiry_date")
+    @Column(name = "expiry_date",nullable = false)
     private Date expiryDate;
 
     @Column(name = "min_stock_level")
