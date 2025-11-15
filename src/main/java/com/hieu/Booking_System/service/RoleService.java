@@ -12,6 +12,8 @@ import com.hieu.Booking_System.repository.RoleRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ public class RoleService{
     RoleRepository roleRepository;
     PermissionRepository permissionRepository;
     RoleMapper roleMapper;
+    @CacheEvict(value = "all_roles", allEntries = true)
     public RoleResponse createRole(RoleRequest roleRequest) {
         RoleEntity roleEntity = roleMapper.toRole(roleRequest);
         List<PermissionEntity> permissionEntities = permissionRepository.findAllById(roleRequest.getPermissions());
@@ -33,12 +36,13 @@ public class RoleService{
         roleRepository.save(roleEntity);
         return roleMapper.toRoleResponse(roleEntity);
     }
-
+    @Cacheable("all_roles")
     public List<RoleResponse> getAllRoles() {
         List<RoleEntity> roleEntity = roleRepository.getAll();
         return roleEntity.stream().map(roleMapper::toRoleResponse).collect(Collectors.toList());
     }
-    public void deleteRole(String role) {
+    @CacheEvict(value = "all_roles",allEntries = true)
+    public void deleteRolebyName(String role) {
         RoleEntity roleEntity = roleRepository.findById(role)
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
         roleEntity.setDeletedAt(LocalDateTime.now());

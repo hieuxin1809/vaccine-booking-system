@@ -2,6 +2,7 @@ package com.hieu.Booking_System.service;
 
 import com.hieu.Booking_System.entity.RedisToken;
 import com.hieu.Booking_System.entity.UserEntity;
+import com.hieu.Booking_System.enums.UserStatus;
 import com.hieu.Booking_System.exception.AppException;
 import com.hieu.Booking_System.exception.ErrorCode;
 import com.hieu.Booking_System.model.JwtInfo;
@@ -104,6 +105,7 @@ public class AuthenticationService{
 
         // 3. Cập nhật trạng thái xác nhận
         user.setEmailVerified(true);
+        user.setStatus(UserStatus.ACTIVE);
         user.setVerificationToken(null); // Xóa token sau khi dùng
 
         userRepository.save(user);

@@ -10,6 +10,8 @@ import com.hieu.Booking_System.repository.PermissionRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,17 +24,17 @@ import java.util.stream.Collectors;
 public class PermissionService{
     PermissionRepository permissionRepository;
     PermissionMapper permissionMapper;
-
+    @CacheEvict(value = "permissions", allEntries = true)
     public PermissionResponse createPermission(PermissionRequest request) {
         PermissionEntity permission = permissionMapper.toPermission(request);
         permission = permissionRepository.save(permission);
         return permissionMapper.toPermissionResponse(permission);
     }
-
+    @Cacheable(value = "permissions")
     public List<PermissionResponse> getAllPermissions() {
         return permissionRepository.findAll().stream().map(permissionMapper::toPermissionResponse).collect(Collectors.toList());
     }
-
+    @CacheEvict(value = "permissions", allEntries = true)
     public void deletePermission(String permissionId) {
         PermissionEntity permission = permissionRepository.findById(permissionId)
                 .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_FOUND));

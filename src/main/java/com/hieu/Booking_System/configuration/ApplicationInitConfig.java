@@ -36,7 +36,7 @@ public class ApplicationInitConfig {
                   UserEntity user = UserEntity.builder()
                           .email("admin@gmail.com")
                           .name("admin")
-                          .password(passwordEncoder.encode("admin"))
+                          .password(passwordEncoder.encode("admin12345"))
                           .roles(roles)
                           .build();
                   userRepository.save(user);

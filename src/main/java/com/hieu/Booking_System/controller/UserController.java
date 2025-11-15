@@ -47,7 +47,6 @@ public class UserController {
                 .build();
     }
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<UserResponse> getUser(@PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .data(userService.getUserById(id))
@@ -87,13 +86,8 @@ public class UserController {
             @PathVariable Long userId,
             @RequestParam("file") MultipartFile file
     ) {
-        // Upload lên Cloudinary và nhận về Map chứa các thông tin
-        Map<String, Object> uploadResult = cloudinaryService.uploadFile(file, "avatars");
-
-        // Lấy ra URL ảnh từ kết quả upload
-        String imageUrl = (String) uploadResult.get("secure_url");
         return ApiResponse.<UserResponse>builder()
-                .data(userService.updateAvatarUrl(userId, imageUrl))
+                .data(userService.uploadAvatar(userId, file))
                 .build();
     }
 }

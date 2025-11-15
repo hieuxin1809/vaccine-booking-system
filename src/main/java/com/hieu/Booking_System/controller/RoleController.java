@@ -36,7 +36,7 @@ public class RoleController {
     @DeleteMapping("/{role}")
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<Void> delete(@PathVariable("role") String role) {
-        roleService.deleteRole(role);
+        roleService.deleteRolebyName(role);
         return ApiResponse.<Void>builder().build();
     }
 }

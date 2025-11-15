@@ -12,6 +12,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,9 +33,9 @@ public class LocationService{
         locationRepository.save(locationEntity);
         return locationMapper.toLocationResponse(locationEntity);
     }
-
-    public void deleteLocation(Long id) {
-        LocationEntity locationEntity = locationRepository.findById(id)
+    @CacheEvict(value = "locations", key = "#locationId")
+    public void deleteLocation(Long locationId) {
+        LocationEntity locationEntity = locationRepository.findById(locationId)
                 .orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
         locationEntity.setDeletedAt(LocalDateTime.now());
         locationRepository.save(locationEntity);
@@ -42,14 +45,14 @@ public class LocationService{
         List<LocationEntity> locationEntities = locationRepository.getAllLocationActive();
         return locationEntities.stream().map(locationMapper::toLocationResponse).collect(Collectors.toList());
     }
-
-    public LocationResponse getLocationById(Long id) {
-        LocationEntity locationEntity = locationRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
+    @Cacheable(value = "locations", key = "#locationId")
+    public LocationResponse getLocationById(Long locationId) {
+        LocationEntity locationEntity = locationRepository.findById(locationId).orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
         return locationMapper.toLocationResponse(locationEntity);
     }
-
-    public LocationResponse updateLocation(Long id , LocationUpdateRequest request) {
-        LocationEntity locationEntity = locationRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
+    @CachePut(value = "locations", key = "#locationId")
+    public LocationResponse updateLocation(Long locationId , LocationUpdateRequest request) {
+        LocationEntity locationEntity = locationRepository.findById(locationId).orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
         locationEntity.setName(request.getName());
         locationEntity.setAddress(request.getAddress());
         locationEntity.setPhone(request.getPhone());

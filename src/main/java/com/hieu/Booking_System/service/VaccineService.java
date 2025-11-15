@@ -11,6 +11,9 @@ import com.hieu.Booking_System.repository.VaccineRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,17 +39,20 @@ public class VaccineService{
         List<VaccineResponse> vaccineResponses = vaccineEntities.stream().map(vaccineMapper::toVaccineResponse).collect(Collectors.toList());
         return vaccineResponses;
     };
-    public VaccineResponse getVaccineById(Long id) {
-        VaccineEntity vaccineEntity = vaccineRepository.findById(id)
+    @Cacheable(value = "vaccines", key = "#vaccineId")
+    public VaccineResponse getVaccineById(Long vaccineId) {
+        VaccineEntity vaccineEntity = vaccineRepository.findById(vaccineId)
                 .orElseThrow(() -> new AppException(ErrorCode.VACCINE_NOT_FOUND));
         return vaccineMapper.toVaccineResponse(vaccineEntity);
     };
-    public void deleteVaccineById(Long id) {
-        VaccineEntity vaccineEntity = vaccineRepository.findById(id)
+    @CacheEvict(value = "vaccines", key = "#vaccineId")
+    public void deleteVaccineById(Long vaccineId) {
+        VaccineEntity vaccineEntity = vaccineRepository.findById(vaccineId)
                 .orElseThrow(() -> new AppException(ErrorCode.VACCINE_NOT_FOUND));
         vaccineEntity.setDeletedAt(LocalDateTime.now());
         vaccineRepository.save(vaccineEntity);
     };
+    @CachePut(value = "vaccines", key = "#vaccineId")
     public VaccineResponse updateVaccine(Long vaccineId, VaccineUpdateRequest request) {
         VaccineEntity vaccineEntity = vaccineRepository.findById(vaccineId)
                 .orElseThrow(() -> new AppException(ErrorCode.VACCINE_NOT_FOUND));

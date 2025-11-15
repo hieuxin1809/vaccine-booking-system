@@ -14,6 +14,22 @@ spring:
     redis:
       host: localhost
       port: 6379
+    cache:
+        type: redis
+        redis:
+          time-to-live: 3600000 # 1 hour in milliseconds
+  resilience4j:
+    circuitbreaker:
+      instances:
+        user-avatar-upload:
+          registerHealthIndicator: true
+          slidingWindowSize: 10
+          minimumNumberOfCalls: 5
+          waitDurationInOpenState: 10s
+          permittedNumberOfCallsInHalfOpenState: 3
+          failureRateThreshold: 50
+          automaticTransitionFromOpenToHalfOpenEnabled: true
+
   jwt:
     signerKey: "ODytKslsP4ccjT5fNo+UrA6umxm5zO/INSWB84GdDVndJzbs2lyRPcMaWCzCa18Z"
     valid-duration: 3600

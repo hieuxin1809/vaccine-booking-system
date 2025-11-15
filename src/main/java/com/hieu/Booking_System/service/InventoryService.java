@@ -15,6 +15,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +34,8 @@ public class InventoryService {
     LocationRepository locationRepository;
     VaccineRepository vaccineRepository;
     InventoryMapper inventoryMapper;
+
+    @PreAuthorize("hasRole('ADMIN')")
     public InventoryResponse createInventory(InventoryRequest inventoryRequest) {
         LocationEntity location = locationRepository.findById(inventoryRequest.getLocationId())
                 .orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
@@ -46,18 +52,23 @@ public class InventoryService {
         inventoryRepository.save(entity);
         return inventoryMapper.toInventoryResponse(entity);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     public List<InventoryResponse> getAll() {
         return inventoryRepository.findAll().stream()
                 .map(inventoryMapper::toInventoryResponse)
                 .toList();
     }
-    public InventoryResponse getById(Long id) {
-        InventoryEntity entity = inventoryRepository.findById(id)
+    @Cacheable(value = "inventories", key = "#inventoryId")
+    @PreAuthorize("hasRole('ADMIN')")
+    public InventoryResponse getById(Long inventoryId) {
+        InventoryEntity entity = inventoryRepository.findById(inventoryId)
                 .orElseThrow(() -> new AppException(ErrorCode.INVENTORY_NOT_FOUND));
         return inventoryMapper.toInventoryResponse(entity);
     }
-    public InventoryResponse updateInventory(Long id, InventoryRequest request) {
-        InventoryEntity entity = inventoryRepository.findById(id)
+    @CachePut(value = "inventories", key = "#inventoryId")
+    @PreAuthorize("hasRole('ADMIN')")
+    public InventoryResponse updateInventory(Long inventoryId, InventoryRequest request) {
+        InventoryEntity entity = inventoryRepository.findById(inventoryId)
                 .orElseThrow(() -> new AppException(ErrorCode.INVENTORY_NOT_FOUND));
 
         LocationEntity location = locationRepository.findById(request.getLocationId())
@@ -76,8 +87,10 @@ public class InventoryService {
     }
 
     // DELETE
-    public void deleteInventory(Long id) {
-        InventoryEntity inventory = inventoryRepository.findById(id)
+    @CacheEvict(value = "inventories", key = "#inventoryId")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteInventory(Long inventoryId) {
+        InventoryEntity inventory = inventoryRepository.findById(inventoryId)
                 .orElseThrow(() -> new AppException(ErrorCode.INVENTORY_NOT_FOUND));
         inventory.setDeletedAt(LocalDateTime.now());
         inventoryRepository.save(inventory);
