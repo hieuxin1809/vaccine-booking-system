@@ -4,6 +4,7 @@ import com.hieu.Booking_System.entity.AppointmentEntity;
 import com.hieu.Booking_System.entity.PaymentEntity;
 import com.hieu.Booking_System.enums.PaymentGateway;
 import com.hieu.Booking_System.enums.PaymentStatus;
+import com.hieu.Booking_System.model.response.VNPayIpnResponse;
 import com.hieu.Booking_System.repository.AppointmentRepository;
 import com.hieu.Booking_System.repository.PaymentRepository;
 import com.hieu.Booking_System.service.payment.PayPalStrategy;
@@ -52,6 +53,12 @@ public class PaymentService {
         log.info("Handling callback - Gateway: {}", gateway);
         PaymentStrategy strategy = getStrategy(gateway);
         return strategy.handleCallback(params);
+    }
+    public VNPayIpnResponse processVNPayIPN(Map<String, String> params) {
+        return vnPayStrategy.processIPN(params);
+    }
+    public void processPayPalWebhook(String payload) {
+        payPalStrategy.processPayPalWebhook(payload);
     }
 
     /**

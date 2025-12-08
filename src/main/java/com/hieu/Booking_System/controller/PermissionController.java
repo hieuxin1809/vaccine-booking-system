@@ -23,7 +23,7 @@ public class PermissionController {
     PermissionService permissionService;
 
     @PostMapping
-   // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<PermissionResponse> create(@RequestBody PermissionRequest permissionRequest) {
         return ApiResponse.<PermissionResponse>builder()
                 .data(permissionService.createPermission(permissionRequest))
@@ -31,7 +31,7 @@ public class PermissionController {
     }
 
     @GetMapping
-  //  @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<PermissionResponse>> getAll() {
         return ApiResponse.<List<PermissionResponse>>builder()
                 .data(permissionService.getAllPermissions())

@@ -44,7 +44,9 @@ public class SecurityConfig {
             "/payment/**",
             "/appointment/**",
             "/vaccine/**",
-            "/location/**"
+            "/location/**",
+            "/payment/vnpay_ipn",
+            "/payment/paypal/webhook"
     };
     private final CustomJwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsServiceCustomizer;

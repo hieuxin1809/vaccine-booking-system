@@ -95,4 +95,18 @@ public class InventoryService {
         inventory.setDeletedAt(LocalDateTime.now());
         inventoryRepository.save(inventory);
     }
+    public void restoreInventory(Long locationId, List<Long> vaccineIds) {
+        for (Long vaccineId : vaccineIds) {
+            InventoryEntity inventory = inventoryRepository.findByLocationIdAndVaccineId(locationId, vaccineId)
+                    .orElseThrow(() -> new AppException(ErrorCode.INVENTORY_NOT_FOUND));
+            if (inventory != null) {
+                // Đơn giản là cộng lại 1
+                inventory.setQuantity(inventory.getQuantity() + 1);
+                inventoryRepository.save(inventory);
+            } else {
+                // Cần log lỗi nghiêm trọng ở đây, vì kho đã bị trừ mà không tìm thấy để cộng lại
+                log.warn("Could not find inventory to restore stock for location: {} and vaccine: {}", locationId, vaccineId);
+            }
+        }
+    }
 }

@@ -3,6 +3,7 @@ package com.hieu.Booking_System.entity;
 import com.hieu.Booking_System.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "appointment")
+@Setter
 @Data
 public class AppointmentEntity extends BaseEntity{
 

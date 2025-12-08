@@ -1,15 +1,24 @@
 package com.hieu.Booking_System.service.payment;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hieu.Booking_System.configuration.PayPalConfig;
 import com.hieu.Booking_System.entity.AppointmentEntity;
 import com.hieu.Booking_System.entity.PaymentEntity;
+import com.hieu.Booking_System.entity.UserEntity;
+import com.hieu.Booking_System.enums.AppointmentStatus;
 import com.hieu.Booking_System.enums.PaymentStatus;
+import com.hieu.Booking_System.exception.AppException;
+import com.hieu.Booking_System.exception.ErrorCode;
 import com.hieu.Booking_System.repository.AppointmentRepository;
 import com.hieu.Booking_System.repository.PaymentRepository;
+import com.hieu.Booking_System.repository.UserRepository;
+import com.hieu.Booking_System.service.BrevoEmailService;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,6 +37,9 @@ public class PayPalStrategy implements PaymentStrategy {
     private final PayPalConfig payPalConfig;
     private final PaymentRepository paymentRepository;
     private final AppointmentRepository appointmentRepository;
+    private final UserRepository userRepository;
+    private final BrevoEmailService brevoEmailService;
+    private final ObjectMapper objectMapper;
     @Override
     public String createPaymentUrl(Long appointmentId, HttpServletRequest request) throws Exception {
         AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
@@ -114,6 +126,53 @@ public class PayPalStrategy implements PaymentStrategy {
         log.info("✓ Created PayPal order: {}", order.id());
         return approvalUrl;
     }
+    @Transactional
+    public void processPayPalWebhook(String payload) {
+        try {
+            // 1. Parse JSON từ PayPal
+            JsonNode root = objectMapper.readTree(payload);
+            String eventType = root.path("event_type").asText();
+            JsonNode resource = root.path("resource");
+
+            log.info("Handling PayPal Webhook Event: {}", eventType);
+
+            // 2. Chỉ xử lý sự kiện Khách đã duyệt thanh toán (CHECKOUT.ORDER.APPROVED)
+            if ("CHECKOUT.ORDER.APPROVED".equals(eventType)) {
+                String orderId = resource.path("id").asText();
+
+                // Tìm Payment trong DB bằng TransactionId (Order ID của PayPal)
+                PaymentEntity payment = paymentRepository.findByTransactionId(orderId)
+                        .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
+
+                // Kiểm tra nếu đã hoàn thành rồi thì bỏ qua
+                if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
+                    log.info("Payment already completed for Order ID: {}", orderId);
+                    return;
+                }
+
+                // 3. Thực hiện Capture (Trừ tiền ngay lập tức)
+                OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(orderId);
+                HttpResponse<Order> response = payPalHttpClient.execute(ordersCaptureRequest);
+                Order order = response.result();
+
+                AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+                        .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+
+                if ("COMPLETED".equals(order.status())) {
+                    payment.setPaymentStatus(PaymentStatus.COMPLETED);
+                    appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
+
+                    paymentRepository.save(payment);
+                    appointmentRepository.save(appointment);
+
+                    log.info("Successfully captured PayPal payment via Webhook: {}", orderId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("PayPal Webhook Error", e);
+            // Không throw exception để PayPal không gửi lại (retry) liên tục nếu lỗi logic
+        }
+    }
 
     @Override
     public Map<String, String> handleCallback(Map<String, String> params) {
@@ -140,6 +199,8 @@ public class PayPalStrategy implements PaymentStrategy {
             if ("COMPLETED".equals(order.status())) {
                 payment.setPaymentStatus(PaymentStatus.COMPLETED);
                 paymentRepository.save(payment);
+                // GỬI EMAIL XÁC NHẬN SAU KHI THANH TOÁN THÀNH CÔNG
+                sendConfirmationEmail(payment);
 
                 result.put("status", "success");
                 result.put("message", "Thanh toán PayPal thành công");
@@ -162,7 +223,25 @@ public class PayPalStrategy implements PaymentStrategy {
 
         return result;
     }
+    private void sendConfirmationEmail(PaymentEntity payment) {
+        try {
+            // Lấy thông tin appointment
+            AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
+            // Lấy thông tin user (giả sử AppointmentEntity có trường userId hoặc user)
+            UserEntity user = userRepository.findById(appointment.getUser().getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+            // Gửi email
+            brevoEmailService.sendAppointmentConfirmationEmail(appointment, payment, user);
+
+            log.info("✓ Đã gửi email xác nhận cho appointment: {}", appointment.getId());
+        } catch (Exception e) {
+            log.error("✗ Lỗi khi gửi email xác nhận: {}", e.getMessage());
+            // Không throw exception để không ảnh hưởng đến luồng thanh toán
+        }
+    }
     @Override
     public String getGatewayName() {
         return "PAYPAL";

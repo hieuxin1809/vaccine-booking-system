@@ -50,7 +50,8 @@ public enum ErrorCode {
     APPOINTMENT_DATE_MUST_BE_IN_FUTURE(1037,"appointment must be in future",HttpStatus.BAD_REQUEST),
     PRICE_REQUIRED(1038,"price is required" , HttpStatus.BAD_REQUEST),
     PRICE_MUST_BE_POSITIVE(1039,"price must be positive",HttpStatus.BAD_REQUEST),
-    DOSES_MUST_BE_AT_LEAST_1(1040,"does must be at least 1",HttpStatus.BAD_REQUEST)
+    DOSES_MUST_BE_AT_LEAST_1(1040,"does must be at least 1",HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_FOUND(1041,"Payment not found",HttpStatus.NOT_FOUND)
 
     ;
     private int code;

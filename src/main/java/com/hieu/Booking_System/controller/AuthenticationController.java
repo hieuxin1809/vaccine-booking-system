@@ -5,6 +5,7 @@ import com.hieu.Booking_System.model.response.*;
 import com.hieu.Booking_System.service.AuthenticationService;
 import com.hieu.Booking_System.service.JwtService;
 import com.nimbusds.jose.JOSEException;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,13 +22,13 @@ public class AuthenticationController {
     AuthenticationService authenticationService;
     JwtService jwtService;
     @PostMapping("/log-in")
-    ApiResponse<LoginResponse> authenticate(@RequestBody LoginRequest loginRequest) {
+    ApiResponse<LoginResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
        return ApiResponse.<LoginResponse>builder()
                .data(authenticationService.login(loginRequest))
                .build();
     }
     @PostMapping("/register")
-    ApiResponse<RegisterResponse> register(@RequestBody RegisterRequest request) {
+    ApiResponse<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ApiResponse.<RegisterResponse>builder()
                 .data(authenticationService.register(request))
                 .build();

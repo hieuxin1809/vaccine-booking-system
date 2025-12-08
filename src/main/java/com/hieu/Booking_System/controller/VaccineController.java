@@ -52,7 +52,7 @@ public class VaccineController {
     }
     @PutMapping("/{vaccineId}")
     @PreAuthorize("hasRole('ADMIN')")
-    ApiResponse<VaccineResponse> updateVaccine(@PathVariable("vaccineId") Long vaccineId, @RequestBody VaccineUpdateRequest vaccineUpdateRequest) {
+    ApiResponse<VaccineResponse> updateVaccine(@PathVariable("vaccineId") Long vaccineId,@Valid @RequestBody VaccineUpdateRequest vaccineUpdateRequest) {
         return ApiResponse.<VaccineResponse>builder()
                 .data(vaccineService.updateVaccine(vaccineId, vaccineUpdateRequest))
                 .build();

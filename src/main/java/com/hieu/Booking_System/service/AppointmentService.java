@@ -3,6 +3,7 @@ package com.hieu.Booking_System.service;
 import com.hieu.Booking_System.entity.*;
 import com.hieu.Booking_System.enums.AppointmentStatus;
 import com.hieu.Booking_System.enums.PaymentGateway;
+import com.hieu.Booking_System.enums.PaymentStatus;
 import com.hieu.Booking_System.exception.AppException;
 import com.hieu.Booking_System.exception.ErrorCode;
 import com.hieu.Booking_System.mapper.AppointmentMapper;
@@ -14,8 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppointmentService {
     AppointmentRepository appointmentRepository;
@@ -46,8 +50,10 @@ public class AppointmentService {
     PaymentService paymentService;
     VaccineMapper vaccineMapper;
     AppointmentMapper appointmentMapper;
+    PaymentRepository paymentRepository;
+    InventoryService inventoryService;
     RedissonClient redisson;
-
+    
     public Map<String, Object> createAppointmentWithPayment(
             AppointmentCreateRequest request,
             PaymentGateway paymentGateway,
@@ -115,7 +121,11 @@ public class AppointmentService {
             } else {
                 throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
             }
-        } catch (InterruptedException | UnsupportedEncodingException e) {
+        }
+        catch (AppException e){
+            throw e;
+        }
+        catch (InterruptedException | UnsupportedEncodingException e) {
             throw new AppException(ErrorCode.INTERRUPTED_LOCK);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -123,6 +133,51 @@ public class AppointmentService {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
             }
+        }
+    }
+    @Scheduled(fixedDelay = 600000) // 10 phút
+    @Transactional // Rất quan trọng, để đảm bảo tất cả hoặc không gì cả
+    public void cancelStalePendingAppointments() {
+        log.info("Running scheduled job: Cancelling stale pending appointments...");
+
+        // Đặt thời gian hết hạn (ví dụ: 20 phút)
+        LocalDateTime expirationTime = LocalDateTime.now().minusMinutes(20);
+
+        // 1. Tìm trực tiếp các APPOINTMENT bị PENDING
+        // (Bạn cần thêm phương thức này vào AppointmentRepository)
+        List<AppointmentEntity> staleAppointments = appointmentRepository.findAllByAppointmentStatusAndCreatedAtBefore(
+                AppointmentStatus.PENDING,
+                expirationTime
+        );
+
+        if (staleAppointments.isEmpty()) {
+            log.info("No stale pending appointments found.");
+            return;
+        }
+
+        log.info("Found {} stale pending appointments to cancel.", staleAppointments.size());
+
+        for (AppointmentEntity appointment : staleAppointments) {
+            // 2. Hủy Appointment
+            appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
+            appointmentRepository.save(appointment);
+
+            // 3. Hủy Payment liên quan (nếu có)
+            PaymentEntity payment = paymentRepository.findByAppointmentId(appointment.getId()).orElse(null);
+            if (payment != null && payment.getPaymentStatus() == PaymentStatus.PENDING) {
+                payment.setPaymentStatus(PaymentStatus.CANCELLED);
+                paymentRepository.save(payment);
+            }
+
+            // 4. (QUAN TRỌNG NHẤT) Hoàn trả kho
+            List<Long> vaccineIds = appointment.getAppointmentVaccineEntities().stream()
+                    .map(av -> av.getVaccine().getId())
+                    .toList();
+
+            // Gọi hàm bạn vừa tạo ở bước 1
+            inventoryService.restoreInventory(appointment.getLocation().getId(), vaccineIds);
+
+            log.info("Cancelled Appointment {} and restored inventory.", appointment.getId());
         }
     }
     private void decreaseInventory(Long locationId, List<Long> vaccineIds) {

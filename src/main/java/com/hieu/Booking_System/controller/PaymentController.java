@@ -2,6 +2,7 @@ package com.hieu.Booking_System.controller;
 
 import com.hieu.Booking_System.enums.PaymentGateway;
 import com.hieu.Booking_System.model.response.ApiResponse;
+import com.hieu.Booking_System.model.response.VNPayIpnResponse;
 import com.hieu.Booking_System.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,23 @@ public class PaymentController {
         result.put("appointmentId", appointmentId != null ? appointmentId : "");
 
         return redirectToFrontend(result);
+    }
+
+    @GetMapping("/vnpay_ipn")
+    public VNPayIpnResponse vnpayIpn(HttpServletRequest request) {
+        log.info("========== VNPAY IPN ==========");
+        Map<String, String> params = extractParams(request);
+        return paymentService.processVNPayIPN(params);
+    }
+
+    @PostMapping("/paypal/webhook")
+    public ApiResponse<Void> paypalWebhook(@RequestBody String payload) {
+        log.info("========== PAYPAL WEBHOOK ==========");
+        // Xử lý bất đồng bộ hoặc đồng bộ tùy nhu cầu
+        paymentService.processPayPalWebhook(payload);
+
+        // Luôn trả về 200 OK để PayPal biết mình đã nhận tin
+        return ApiResponse.<Void>builder().message("Received").build();
     }
 
     // Helper methods
