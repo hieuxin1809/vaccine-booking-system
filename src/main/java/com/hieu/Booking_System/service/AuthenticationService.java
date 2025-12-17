@@ -89,7 +89,7 @@ public class AuthenticationService{
         } catch (BadCredentialsException e) {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         } catch (Exception e) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION,e);
         }
     }
 
