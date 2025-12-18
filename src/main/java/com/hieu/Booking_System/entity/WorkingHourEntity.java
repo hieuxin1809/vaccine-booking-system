@@ -1,13 +1,14 @@
 package com.hieu.Booking_System.entity;
 
-import com.hieu.Booking_System.enums.DayOfWeek;
+import java.time.LocalTime;
+
 import jakarta.persistence.*;
 
-import java.time.LocalTime;
+import com.hieu.Booking_System.enums.DayOfWeek;
 
 @Entity
 @Table(name = "working_hour")
-public class WorkingHourEntity extends BaseEntity{
+public class WorkingHourEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")

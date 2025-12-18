@@ -1,10 +1,11 @@
 package com.hieu.Booking_System.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
 import com.hieu.Booking_System.entity.RoleEntity;
 import com.hieu.Booking_System.model.request.RoleRequest;
 import com.hieu.Booking_System.model.response.RoleResponse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface RoleMapper {
@@ -13,4 +14,3 @@ public interface RoleMapper {
 
     RoleResponse toRoleResponse(RoleEntity role);
 }
-

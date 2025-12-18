@@ -1,14 +1,15 @@
 package com.hieu.Booking_System.repository;
 
-import com.hieu.Booking_System.entity.VaccineEntity;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.hieu.Booking_System.entity.VaccineEntity;
 
 @Repository
-public interface VaccineRepository extends JpaRepository<VaccineEntity,Long> {
+public interface VaccineRepository extends JpaRepository<VaccineEntity, Long> {
     @Query("select v from VaccineEntity v where v.deletedAt is null")
     List<VaccineEntity> GetAllActiveVaccine();
 }

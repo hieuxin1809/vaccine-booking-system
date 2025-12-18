@@ -3,6 +3,7 @@ package com.hieu.Booking_System.model.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +18,6 @@ public class LoginRequest {
     String email;
 
     @NotBlank(message = "PASSWORD_REQUIRED")
-    @Size(min = 8,message = "PASSWORD_INVALID")
+    @Size(min = 8, message = "PASSWORD_INVALID")
     String password;
 }

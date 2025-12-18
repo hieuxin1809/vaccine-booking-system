@@ -1,19 +1,20 @@
 package com.hieu.Booking_System.entity;
 
-import com.hieu.Booking_System.enums.Role;
-import com.hieu.Booking_System.enums.UserStatus;
+import java.time.LocalDate;
+import java.util.*;
+
 import jakarta.persistence.*;
-import jdk.jfr.DataAmount;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
-import java.util.*;
+import com.hieu.Booking_System.enums.UserStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "user")
@@ -43,10 +44,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     private String verificationToken;
 
-    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<AppointmentEntity> patientAppointments;
 
-    @OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<NotificationEntity> notifications;
 
     @ManyToMany

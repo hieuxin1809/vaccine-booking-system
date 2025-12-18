@@ -1,10 +1,10 @@
 package com.hieu.Booking_System.model;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder

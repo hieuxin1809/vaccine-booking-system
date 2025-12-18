@@ -1,16 +1,19 @@
 package com.hieu.Booking_System.repository;
 
-import com.hieu.Booking_System.entity.RoleEntity;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.hieu.Booking_System.entity.RoleEntity;
 
 @Repository
 public interface RoleRepository extends JpaRepository<RoleEntity, String> {
     @Query("select r from RoleEntity r where r.deletedAt is null ")
     List<RoleEntity> getAll();
 
-    List<RoleEntity> findByName(String name);
+    @Query("SELECT r FROM RoleEntity r LEFT JOIN FETCH r.permissions WHERE r.name = :name")
+    Optional<RoleEntity> findByName(String name);
 }

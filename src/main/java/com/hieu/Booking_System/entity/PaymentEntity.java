@@ -1,11 +1,13 @@
 package com.hieu.Booking_System.entity;
 
-import com.hieu.Booking_System.enums.PaymentStatus;
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
+
+import com.hieu.Booking_System.enums.PaymentStatus;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 @Entity
 @Getter
@@ -14,10 +16,12 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "payment",indexes = {
-        // Tối ưu cho hàm findByTransactionId
-        @Index(name = "idx_payment_trans_id", columnList = "transactionId")
-})
+@Table(
+        name = "payment",
+        indexes = {
+            // Tối ưu cho hàm findByTransactionId
+            @Index(name = "idx_payment_trans_id", columnList = "transactionId")
+        })
 public class PaymentEntity extends BaseEntity {
     // Liên kết với Appointment
     @Column(name = "appointment_id", nullable = false)

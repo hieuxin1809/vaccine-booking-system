@@ -1,5 +1,16 @@
 package com.hieu.Booking_System.service.payment;
 
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.hieu.Booking_System.configuration.VNPayConfig;
 import com.hieu.Booking_System.entity.AppointmentEntity;
 import com.hieu.Booking_System.entity.PaymentEntity;
@@ -14,30 +25,24 @@ import com.hieu.Booking_System.repository.PaymentRepository;
 import com.hieu.Booking_System.repository.UserRepository;
 import com.hieu.Booking_System.service.BrevoEmailService;
 import com.hieu.Booking_System.util.VNPayUtil;
-import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class VNPayStrategy implements PaymentStrategy{
+public class VNPayStrategy implements PaymentStrategy {
     private final VNPayConfig vnPayConfig;
     private final PaymentRepository paymentRepository;
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final BrevoEmailService emailService;
+
     @Override
     public String createPaymentUrl(Long appointmentId, HttpServletRequest request) throws Exception {
-        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+        AppointmentEntity appointment = appointmentRepository
+                .findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         PaymentEntity payment = PaymentEntity.builder()
@@ -88,7 +93,7 @@ public class VNPayStrategy implements PaymentStrategy{
             if ((fieldValue != null) && (fieldValue.length() > 0)) {
                 hashData.append(fieldName);
                 hashData.append('=');
-           //     hashData.append(fieldValue);
+                //     hashData.append(fieldValue);
                 hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
 
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
@@ -135,9 +140,8 @@ public class VNPayStrategy implements PaymentStrategy{
             String vnp_TxnRef = params.get("vnp_TxnRef");
             String vnp_TransactionNo = params.get("vnp_TransactionNo");
 
-
-
-            PaymentEntity payment = paymentRepository.findByTransactionId(vnp_TxnRef)
+            PaymentEntity payment = paymentRepository
+                    .findByTransactionId(vnp_TxnRef)
                     .orElseThrow(() -> new RuntimeException("Payment not found"));
 
             if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
@@ -148,17 +152,17 @@ public class VNPayStrategy implements PaymentStrategy{
                 return result;
             }
 
-            AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+            AppointmentEntity appointment = appointmentRepository
+                    .findById(payment.getAppointmentId())
                     .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
             if ("00".equals(vnp_ResponseCode)) {
                 payment.setPaymentStatus(PaymentStatus.COMPLETED);
-             //   payment.setTransactionId(vnp_TransactionNo);
+                //   payment.setTransactionId(vnp_TransactionNo);
                 paymentRepository.save(payment);
 
                 appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
                 appointmentRepository.save(appointment);
-
 
                 // GỬI EMAIL XÁC NHẬN SAU KHI THANH TOÁN THÀNH CÔNG
                 sendConfirmationEmail(payment);
@@ -198,7 +202,10 @@ public class VNPayStrategy implements PaymentStrategy{
 
             String signValue = VNPayUtil.hashAllFields(params, vnPayConfig.getVnpHashSecret());
             if (!signValue.equals(vnp_SecureHash)) {
-                return VNPayIpnResponse.builder().RspCode("97").Message("Invalid Checksum").build();
+                return VNPayIpnResponse.builder()
+                        .RspCode("97")
+                        .Message("Invalid Checksum")
+                        .build();
             }
 
             // 2. Lấy dữ liệu
@@ -207,31 +214,42 @@ public class VNPayStrategy implements PaymentStrategy{
             String vnp_Amount = params.get("vnp_Amount"); // Số tiền nhân 100
 
             // 3. Tìm Payment
-            PaymentEntity payment = paymentRepository.findByTransactionId(vnp_TxnRef)
+            PaymentEntity payment = paymentRepository
+                    .findByTransactionId(vnp_TxnRef)
                     .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
             if (payment == null) {
-                return VNPayIpnResponse.builder().RspCode("01").Message("Order not found").build();
+                return VNPayIpnResponse.builder()
+                        .RspCode("01")
+                        .Message("Order not found")
+                        .build();
             }
 
             // 4. Kiểm tra số tiền (Chống hack sửa giá)
             long amountInVnp = payment.getAmount().multiply(new BigDecimal(100)).longValue();
             if (amountInVnp != Long.parseLong(vnp_Amount)) {
-                return VNPayIpnResponse.builder().RspCode("04").Message("Invalid Amount").build();
+                return VNPayIpnResponse.builder()
+                        .RspCode("04")
+                        .Message("Invalid Amount")
+                        .build();
             }
 
             // 5. Kiểm tra trạng thái đơn hàng (Idempotency - tránh update 2 lần)
             if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
-                return VNPayIpnResponse.builder().RspCode("02").Message("Order already confirmed").build();
+                return VNPayIpnResponse.builder()
+                        .RspCode("02")
+                        .Message("Order already confirmed")
+                        .build();
             }
 
             // 6. Xử lý kết quả
-            AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+            AppointmentEntity appointment = appointmentRepository
+                    .findById(payment.getAppointmentId())
                     .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
             if ("00".equals(vnp_ResponseCode)) {
                 // Success
                 payment.setPaymentStatus(PaymentStatus.COMPLETED);
-          //      payment.setTransactionId(params.get("vnp_TransactionNo"));
+                //      payment.setTransactionId(params.get("vnp_TransactionNo"));
                 appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
 
                 paymentRepository.save(payment);
@@ -248,11 +266,17 @@ public class VNPayStrategy implements PaymentStrategy{
                 appointmentRepository.save(appointment);
             }
 
-            return VNPayIpnResponse.builder().RspCode("00").Message("Confirm Success").build();
+            return VNPayIpnResponse.builder()
+                    .RspCode("00")
+                    .Message("Confirm Success")
+                    .build();
 
         } catch (Exception e) {
             log.error("IPN Error", e);
-            return VNPayIpnResponse.builder().RspCode("99").Message("Unknown error").build();
+            return VNPayIpnResponse.builder()
+                    .RspCode("99")
+                    .Message("Unknown error")
+                    .build();
         }
     }
     /**
@@ -261,11 +285,13 @@ public class VNPayStrategy implements PaymentStrategy{
     private void sendConfirmationEmail(PaymentEntity payment) {
         try {
             // Lấy thông tin appointment
-            AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+            AppointmentEntity appointment = appointmentRepository
+                    .findById(payment.getAppointmentId())
                     .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
             // Lấy thông tin user
-            UserEntity user = userRepository.findById(appointment.getUser().getId())
+            UserEntity user = userRepository
+                    .findById(appointment.getUser().getId())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
             // Gửi email

@@ -1,11 +1,9 @@
 package com.hieu.Booking_System.util;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 public class VNPayUtil {
 
@@ -29,6 +27,7 @@ public class VNPayUtil {
             return "";
         }
     }
+
     public static String hashAllFields(Map<String, String> fields, String hashSecret) {
         // Sắp xếp các field theo alphabet
         List<String> fieldNames = new ArrayList<>(fields.keySet());
@@ -45,7 +44,7 @@ public class VNPayUtil {
                 // Build hash data: key=value
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(fieldValue);  // KHÔNG encode ở đây!
+                hashData.append(fieldValue); // KHÔNG encode ở đây!
 
                 if (itr.hasNext()) {
                     hashData.append('&');

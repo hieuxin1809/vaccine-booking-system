@@ -1,15 +1,15 @@
 package com.hieu.Booking_System.repository;
 
-import com.hieu.Booking_System.entity.PermissionEntity;
-import com.hieu.Booking_System.entity.RoleEntity;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.hieu.Booking_System.entity.PermissionEntity;
 
 @Repository
-public interface PermissionRepository extends JpaRepository<PermissionEntity , String> {
+public interface PermissionRepository extends JpaRepository<PermissionEntity, String> {
     @Query("select p from PermissionEntity p where p.deletedAt is null ")
     List<PermissionEntity> getAll();
 }

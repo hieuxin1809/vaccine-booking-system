@@ -1,13 +1,12 @@
 package com.hieu.Booking_System.model.response;
 
-import com.hieu.Booking_System.enums.Role;
+import java.io.Serializable;
+import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-
-import java.io.Serializable;
-import java.util.Set;
 
 @Data
 @Builder

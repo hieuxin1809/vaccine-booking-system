@@ -1,7 +1,7 @@
 package com.hieu.Booking_System.model.request;
 
-
 import jakarta.validation.constraints.NotBlank;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +16,6 @@ public class LocationUpdateRequest {
 
     @NotBlank(message = "ADDRESS_REQUIRED")
     String address;
+
     String phone;
 }

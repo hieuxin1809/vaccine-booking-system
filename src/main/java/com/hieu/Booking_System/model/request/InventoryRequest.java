@@ -1,12 +1,11 @@
 package com.hieu.Booking_System.model.request;
 
-import jakarta.validation.constraints.NotNull;
+import java.util.Date;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Date;
 
 @Data
 @Builder

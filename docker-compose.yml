@@ -7,7 +7,7 @@ services:
     container_name: booking-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root  # Mật khẩu DB
+      MYSQL_ROOT_PASSWORD:   # Mật khẩu DB
       MYSQL_DATABASE: booking_system
     ports:
       - "3308:3306" # Map ra port 3308 máy ngoài

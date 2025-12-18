@@ -1,19 +1,18 @@
 package com.hieu.Booking_System.controller;
 
-import com.hieu.Booking_System.model.request.PermissionRequest;
-import com.hieu.Booking_System.model.request.RoleRequest;
-import com.hieu.Booking_System.model.response.ApiResponse;
-import com.hieu.Booking_System.model.response.PermissionResponse;
-import com.hieu.Booking_System.model.response.RoleResponse;
-import com.hieu.Booking_System.service.PermissionService;
-import com.hieu.Booking_System.service.RoleService;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.hieu.Booking_System.model.request.PermissionRequest;
+import com.hieu.Booking_System.model.response.ApiResponse;
+import com.hieu.Booking_System.model.response.PermissionResponse;
+import com.hieu.Booking_System.service.PermissionService;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class PermissionController {
     }
 
     @DeleteMapping("/{permission}")
-//@PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<Void> delete(@PathVariable("permission") String role) {
         permissionService.deletePermission(role);
         return ApiResponse.<Void>builder().build();

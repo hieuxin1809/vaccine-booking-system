@@ -1,11 +1,13 @@
 package com.hieu.Booking_System.configuration;
 
-import com.paypal.core.PayPalEnvironment;
-import com.paypal.core.PayPalHttpClient;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.paypal.core.PayPalEnvironment;
+import com.paypal.core.PayPalHttpClient;
+
+import lombok.Getter;
 
 @Configuration
 @Getter

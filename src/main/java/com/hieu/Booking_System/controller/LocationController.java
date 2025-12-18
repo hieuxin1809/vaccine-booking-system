@@ -1,21 +1,21 @@
 package com.hieu.Booking_System.controller;
 
-import com.hieu.Booking_System.model.request.LocationCreateRequest;
-import com.hieu.Booking_System.model.request.LocationUpdateRequest;
-import com.hieu.Booking_System.model.request.UserCreateRequest;
-import com.hieu.Booking_System.model.request.UserUpdateRequest;
-import com.hieu.Booking_System.model.response.ApiResponse;
-import com.hieu.Booking_System.model.response.LocationResponse;
-import com.hieu.Booking_System.model.response.UserResponse;
-import com.hieu.Booking_System.service.LocationService;
+import java.util.List;
+
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.hieu.Booking_System.model.request.LocationCreateRequest;
+import com.hieu.Booking_System.model.request.LocationUpdateRequest;
+import com.hieu.Booking_System.model.response.ApiResponse;
+import com.hieu.Booking_System.model.response.LocationResponse;
+import com.hieu.Booking_System.service.LocationService;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequestMapping("/location")
@@ -23,6 +23,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LocationController {
     LocationService locationService;
+
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<LocationResponse> createLocation(@RequestBody @Valid LocationCreateRequest locationCreateRequest) {
@@ -30,6 +31,7 @@ public class LocationController {
                 .data(locationService.createLocation(locationCreateRequest))
                 .build();
     }
+
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<LocationResponse>> getAllLocations() {
@@ -37,6 +39,7 @@ public class LocationController {
                 .data(locationService.getAllLocations())
                 .build();
     }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<LocationResponse> getLocation(@PathVariable Long id) {
@@ -44,18 +47,20 @@ public class LocationController {
                 .data(locationService.getLocationById(id))
                 .build();
     }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    ApiResponse<Void> deleteLocation(@PathVariable Long id){
+    ApiResponse<Void> deleteLocation(@PathVariable Long id) {
         locationService.deleteLocation(id);
-        return ApiResponse.<Void>builder()
-                .build();
+        return ApiResponse.<Void>builder().build();
     }
+
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    ApiResponse<LocationResponse> updateLocation(@PathVariable("userId") Long locationId, @RequestBody LocationUpdateRequest locationUpdateRequest) {
+    ApiResponse<LocationResponse> updateLocation(
+            @PathVariable("userId") Long locationId, @RequestBody LocationUpdateRequest locationUpdateRequest) {
         return ApiResponse.<LocationResponse>builder()
-                .data(locationService.updateLocation(locationId,locationUpdateRequest))
+                .data(locationService.updateLocation(locationId, locationUpdateRequest))
                 .build();
     }
 }

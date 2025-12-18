@@ -1,22 +1,24 @@
 package com.hieu.Booking_System.controller;
 
-import com.hieu.Booking_System.enums.PaymentGateway;
-import com.hieu.Booking_System.model.response.ApiResponse;
-import com.hieu.Booking_System.model.response.VNPayIpnResponse;
-import com.hieu.Booking_System.service.PaymentService;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
+
+import com.hieu.Booking_System.enums.PaymentGateway;
+import com.hieu.Booking_System.model.response.ApiResponse;
+import com.hieu.Booking_System.model.response.VNPayIpnResponse;
+import com.hieu.Booking_System.service.PaymentService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/payment")
@@ -73,8 +75,7 @@ public class PaymentController {
      * PayPal cancel callback
      */
     @GetMapping("/paypal/cancel")
-    public RedirectView paypalCancel(@RequestParam String token,
-                                     @RequestParam(required = false) String appointmentId) {
+    public RedirectView paypalCancel(@RequestParam String token, @RequestParam(required = false) String appointmentId) {
         log.info("========== PAYPAL CANCEL ==========");
 
         Map<String, String> result = new HashMap<>();
@@ -128,8 +129,7 @@ public class PaymentController {
 
         String redirectUrl = String.format(
                 "http://localhost:3000/payment-result?status=%s&appointmentId=%s&message=%s",
-                status, appointmentId, message
-        );
+                status, appointmentId, message);
 
         log.info("Redirecting to: {}", redirectUrl);
         return new RedirectView(redirectUrl);

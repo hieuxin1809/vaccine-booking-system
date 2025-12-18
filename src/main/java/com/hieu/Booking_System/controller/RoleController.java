@@ -1,16 +1,18 @@
 package com.hieu.Booking_System.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import com.hieu.Booking_System.model.request.RoleRequest;
 import com.hieu.Booking_System.model.response.ApiResponse;
 import com.hieu.Booking_System.model.response.RoleResponse;
 import com.hieu.Booking_System.service.RoleService;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class RoleController {
                 .data(roleService.createRole(role))
                 .build();
     }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<RoleResponse>> getAll() {
@@ -33,6 +36,7 @@ public class RoleController {
                 .data(roleService.getAllRoles())
                 .build();
     }
+
     @DeleteMapping("/{role}")
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<Void> delete(@PathVariable("role") String role) {

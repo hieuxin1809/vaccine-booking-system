@@ -1,13 +1,14 @@
 package com.hieu.Booking_System.entity;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import jakarta.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
 @Table(name = "vaccine")
@@ -15,9 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VaccineEntity extends BaseEntity{
-    @Column(unique = true,nullable = false)
+public class VaccineEntity extends BaseEntity {
+    @Column(unique = true, nullable = false)
     private String name;
+
     private String description;
     private String manufacturer;
 
@@ -26,12 +28,13 @@ public class VaccineEntity extends BaseEntity{
 
     @Column(name = "doses_required")
     private int dosesRequired;
+
     @Column(name = "interval_day")
     private int intervalDay;
 
-    @OneToMany(mappedBy = "vaccine" , fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "vaccine", fetch = FetchType.LAZY)
     private List<AppointmentVaccineEntity> appointmentVaccine;
 
-    @OneToMany(mappedBy = "vaccine" , fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "vaccine", fetch = FetchType.LAZY)
     private List<InventoryEntity> inventory;
 }

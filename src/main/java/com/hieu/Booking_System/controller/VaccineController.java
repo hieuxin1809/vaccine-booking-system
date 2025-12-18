@@ -1,20 +1,21 @@
 package com.hieu.Booking_System.controller;
 
-import com.hieu.Booking_System.model.request.UserUpdateRequest;
-import com.hieu.Booking_System.model.request.VaccineCreateRequest;
-import com.hieu.Booking_System.model.request.VaccineUpdateRequest;
-import com.hieu.Booking_System.model.response.ApiResponse;
-import com.hieu.Booking_System.model.response.UserResponse;
-import com.hieu.Booking_System.model.response.VaccineResponse;
-import com.hieu.Booking_System.service.VaccineService;
+import java.util.List;
+
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.hieu.Booking_System.model.request.VaccineCreateRequest;
+import com.hieu.Booking_System.model.request.VaccineUpdateRequest;
+import com.hieu.Booking_System.model.response.ApiResponse;
+import com.hieu.Booking_System.model.response.VaccineResponse;
+import com.hieu.Booking_System.service.VaccineService;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ import java.util.List;
 @RequestMapping("/vaccine")
 public class VaccineController {
     VaccineService vaccineService;
+
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<VaccineResponse> createVaccine(@RequestBody @Valid VaccineCreateRequest vaccineCreateRequest) {
@@ -29,6 +31,7 @@ public class VaccineController {
                 .data(vaccineService.createVaccine(vaccineCreateRequest))
                 .build();
     }
+
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<List<VaccineResponse>> getAllVaccine() {
@@ -36,6 +39,7 @@ public class VaccineController {
                 .data(vaccineService.getAllVaccine())
                 .build();
     }
+
     @GetMapping("/{vaccineId}")
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<VaccineResponse> getVaccineById(@PathVariable Long vaccineId) {
@@ -43,16 +47,18 @@ public class VaccineController {
                 .data(vaccineService.getVaccineById(vaccineId))
                 .build();
     }
+
     @DeleteMapping("/{vaccineId}")
     @PreAuthorize("hasRole('ADMIN')")
     ApiResponse<Void> deleteVaccineById(@PathVariable Long vaccineId) {
         vaccineService.deleteVaccineById(vaccineId);
-        return ApiResponse.<Void>builder()
-                .build();
+        return ApiResponse.<Void>builder().build();
     }
+
     @PutMapping("/{vaccineId}")
     @PreAuthorize("hasRole('ADMIN')")
-    ApiResponse<VaccineResponse> updateVaccine(@PathVariable("vaccineId") Long vaccineId,@Valid @RequestBody VaccineUpdateRequest vaccineUpdateRequest) {
+    ApiResponse<VaccineResponse> updateVaccine(
+            @PathVariable("vaccineId") Long vaccineId, @Valid @RequestBody VaccineUpdateRequest vaccineUpdateRequest) {
         return ApiResponse.<VaccineResponse>builder()
                 .data(vaccineService.updateVaccine(vaccineId, vaccineUpdateRequest))
                 .build();

@@ -1,12 +1,13 @@
 package com.hieu.Booking_System.entity;
 
-import lombok.Builder;
-import lombok.Data;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
-import java.util.concurrent.TimeUnit;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @RedisHash("RedisHas")
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisToken {
     @Id
     private String jwtId;
+
     @TimeToLive(unit = TimeUnit.SECONDS)
     private Long expiredTime;
 }

@@ -1,23 +1,24 @@
 package com.hieu.Booking_System.entity;
 
-import com.hieu.Booking_System.enums.AppointmentStatus;
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Setter;
-import lombok.ToString;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import jakarta.persistence.*;
+
+import com.hieu.Booking_System.enums.AppointmentStatus;
+
+import lombok.Data;
+import lombok.Setter;
+
 @Entity
 @Table(name = "appointment")
 @Setter
 @Data
-public class AppointmentEntity extends BaseEntity{
+public class AppointmentEntity extends BaseEntity {
 
-    @Column(name = "appointment_date" , nullable = false)
+    @Column(name = "appointment_date", nullable = false)
     private LocalDate appointmentDate;
 
     @Column(name = "appointment_time", nullable = false)
@@ -28,13 +29,13 @@ public class AppointmentEntity extends BaseEntity{
 
     private String note;
 
-    @Column(name = "total_price",nullable = false)
+    @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 
-    @OneToMany( mappedBy = "appointment",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "appointment", fetch = FetchType.LAZY)
     private List<AppointmentVaccineEntity> appointmentVaccineEntities;
 
     @ManyToOne(fetch = FetchType.LAZY)

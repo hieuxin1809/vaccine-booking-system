@@ -1,23 +1,21 @@
 package com.hieu.Booking_System.model.request;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hieu.Booking_System.enums.AppointmentStatus;
 import com.hieu.Booking_System.validation.annotation.ValidAppointmentDatetime;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.Check;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
 
 @ValidAppointmentDatetime(message = "INVALID_DATETIME")
 @Data
@@ -29,6 +27,7 @@ public class AppointmentCreateRequest {
 
     @NotNull(message = "LOCATION_ID_REQUIRED")
     Long location_id;
+
     @NotEmpty(message = "VACCINE_IDS_REQUIRED")
     List<Long> vaccine_ids;
 
@@ -43,5 +42,6 @@ public class AppointmentCreateRequest {
 
     @Builder.Default
     AppointmentStatus appointment_status = AppointmentStatus.PENDING;
+
     String note;
 }

@@ -1,12 +1,9 @@
 package com.hieu.Booking_System.configuration;
 
-import com.hieu.Booking_System.service.JwtService;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jwt.SignedJWT;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
+import java.text.ParseException;
+import java.util.Objects;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,10 +12,13 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Objects;
+import com.hieu.Booking_System.service.JwtService;
+import com.nimbusds.jose.JOSEException;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 
 @Component
 @RequiredArgsConstructor
@@ -27,21 +27,22 @@ public class CustomJwtDecoder implements JwtDecoder {
     @NonFinal
     @Value("${spring.jwt.signerKey}")
     String signerKey;
+
     JwtService jwtService;
+
     @NonFinal
     NimbusJwtDecoder nimbusJwtDecoder = null;
 
     @Override
     public Jwt decode(String token) throws JwtException {
-        try{
-            jwtService.verifyToken(token,true);
+        try {
+            jwtService.verifyToken(token, true);
         } catch (ParseException | JOSEException e) {
             throw new JwtException(e.getMessage());
         }
-        if(Objects.isNull(nimbusJwtDecoder)){
+        if (Objects.isNull(nimbusJwtDecoder)) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
-            nimbusJwtDecoder = NimbusJwtDecoder
-                    .withSecretKey(secretKeySpec)
+            nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)
                     .macAlgorithm(MacAlgorithm.HS512)
                     .build();
         }

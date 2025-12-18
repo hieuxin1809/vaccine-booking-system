@@ -1,7 +1,7 @@
 package com.hieu.Booking_System.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
+
 import lombok.Data;
 
 @Data

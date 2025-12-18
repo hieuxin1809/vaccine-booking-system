@@ -1,9 +1,10 @@
 package com.hieu.Booking_System.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.Date;
+
+import jakarta.persistence.*;
+
+import lombok.*;
 
 @Entity
 @Data
@@ -11,11 +12,11 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "inventory")
-public class InventoryEntity extends BaseEntity{
+public class InventoryEntity extends BaseEntity {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "expiry_date",nullable = false)
+    @Column(name = "expiry_date", nullable = false)
     private Date expiryDate;
 
     @Column(name = "min_stock_level")
@@ -28,5 +29,4 @@ public class InventoryEntity extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vaccine_id")
     private VaccineEntity vaccine;
-
 }

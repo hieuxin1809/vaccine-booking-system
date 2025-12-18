@@ -1,13 +1,13 @@
 package com.hieu.Booking_System.model.response;
 
+import java.util.Date;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder

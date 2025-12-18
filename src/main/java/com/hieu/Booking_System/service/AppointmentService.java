@@ -1,5 +1,25 @@
 package com.hieu.Booking_System.service;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.hieu.Booking_System.entity.*;
 import com.hieu.Booking_System.enums.AppointmentStatus;
 import com.hieu.Booking_System.enums.PaymentGateway;
@@ -11,29 +31,11 @@ import com.hieu.Booking_System.mapper.VaccineMapper;
 import com.hieu.Booking_System.model.request.AppointmentCreateRequest;
 import com.hieu.Booking_System.model.response.AppointmentResponse;
 import com.hieu.Booking_System.repository.*;
-import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,11 +55,9 @@ public class AppointmentService {
     PaymentRepository paymentRepository;
     InventoryService inventoryService;
     RedissonClient redisson;
-    
+
     public Map<String, Object> createAppointmentWithPayment(
-            AppointmentCreateRequest request,
-            PaymentGateway paymentGateway,
-            HttpServletRequest httpRequest) {
+            AppointmentCreateRequest request, PaymentGateway paymentGateway, HttpServletRequest httpRequest) {
 
         StringBuilder lockKey = new StringBuilder();
         lockKey.append("lock:appointment")
@@ -69,15 +69,16 @@ public class AppointmentService {
 
         try {
             if (lock.tryLock(5, 10, TimeUnit.SECONDS)) {
-                if (checkAppointmentExists(request.getLocation_id(),
-                        request.getAppointment_date(),
-                        request.getAppointment_time())) {
+                if (checkAppointmentExists(
+                        request.getLocation_id(), request.getAppointment_date(), request.getAppointment_time())) {
                     throw new AppException(ErrorCode.APPOINTMENT_DUPLICATED);
                 }
 
-                UserEntity user = userRepository.findById(request.getUser_id())
+                UserEntity user = userRepository
+                        .findById(request.getUser_id())
                         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-                LocationEntity location = locationRepository.findById(request.getLocation_id())
+                LocationEntity location = locationRepository
+                        .findById(request.getLocation_id())
                         .orElseThrow(() -> new AppException(ErrorCode.LOCATION_NOT_FOUND));
                 List<VaccineEntity> vaccineEntities = vaccineRepository.findAllById(request.getVaccine_ids());
 
@@ -100,17 +101,13 @@ public class AppointmentService {
                 saveAppointmentVaccines(savedAppointment, vaccineEntities);
 
                 // Tạo URL thanh toán
-                String paymentUrl = paymentService.createPaymentUrl(
-                        savedAppointment.getId(),
-                        paymentGateway,
-                        httpRequest);
+                String paymentUrl =
+                        paymentService.createPaymentUrl(savedAppointment.getId(), paymentGateway, httpRequest);
 
                 AppointmentResponse response = appointmentMapper.toAppointmentResponse(savedAppointment);
-                response.setVaccines(
-                        vaccineEntities.stream()
-                                .map(vaccineMapper::toVaccineResponse)
-                                .collect(Collectors.toList())
-                );
+                response.setVaccines(vaccineEntities.stream()
+                        .map(vaccineMapper::toVaccineResponse)
+                        .collect(Collectors.toList()));
 
                 Map<String, Object> result = new HashMap<>();
                 result.put("appointment", response);
@@ -121,11 +118,9 @@ public class AppointmentService {
             } else {
                 throw new AppException(ErrorCode.APPOINTMENT_CONFLICT);
             }
-        }
-        catch (AppException e){
+        } catch (AppException e) {
             throw e;
-        }
-        catch (InterruptedException | UnsupportedEncodingException e) {
+        } catch (InterruptedException | UnsupportedEncodingException e) {
             throw new AppException(ErrorCode.INTERRUPTED_LOCK);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -135,8 +130,9 @@ public class AppointmentService {
             }
         }
     }
+
     @Scheduled(fixedDelay = 600000) // 10 phút
-    @Transactional // Rất quan trọng, để đảm bảo tất cả hoặc không gì cả
+    @Transactional
     public void cancelStalePendingAppointments() {
         log.info("Running scheduled job: Cancelling stale pending appointments...");
 
@@ -146,9 +142,7 @@ public class AppointmentService {
         // 1. Tìm trực tiếp các APPOINTMENT bị PENDING
         // (Bạn cần thêm phương thức này vào AppointmentRepository)
         List<AppointmentEntity> staleAppointments = appointmentRepository.findAllByAppointmentStatusAndCreatedAtBefore(
-                AppointmentStatus.PENDING,
-                expirationTime
-        );
+                AppointmentStatus.PENDING, expirationTime);
 
         if (staleAppointments.isEmpty()) {
             log.info("No stale pending appointments found.");
@@ -163,7 +157,8 @@ public class AppointmentService {
             appointmentRepository.save(appointment);
 
             // 3. Hủy Payment liên quan (nếu có)
-            PaymentEntity payment = paymentRepository.findByAppointmentId(appointment.getId()).orElse(null);
+            PaymentEntity payment =
+                    paymentRepository.findByAppointmentId(appointment.getId()).orElse(null);
             if (payment != null && payment.getPaymentStatus() == PaymentStatus.PENDING) {
                 payment.setPaymentStatus(PaymentStatus.CANCELLED);
                 paymentRepository.save(payment);
@@ -180,9 +175,11 @@ public class AppointmentService {
             log.info("Cancelled Appointment {} and restored inventory.", appointment.getId());
         }
     }
+
     private void decreaseInventory(Long locationId, List<Long> vaccineIds) {
         for (Long vaccineId : vaccineIds) {
-            InventoryEntity inventory = inventoryRepository.findByLocationIdAndVaccineId(locationId, vaccineId)
+            InventoryEntity inventory = inventoryRepository
+                    .findByLocationIdAndVaccineId(locationId, vaccineId)
                     .orElseThrow(() -> new AppException(ErrorCode.OUT_OF_STOCK));
 
             if (inventory.getQuantity() <= 0) {
@@ -192,13 +189,15 @@ public class AppointmentService {
             inventoryRepository.save(inventory);
         }
     }
+
     @PreAuthorize("hasRole('ADMIN') or @appointmentService.isOwner(#id, authentication.name)")
     public void deleteAppointment(Long id) {
-        AppointmentEntity appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        AppointmentEntity appointment =
+                appointmentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
         appointment.setDeletedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
     }
+
     private void checkInventoryAvailability(Long locationId, List<Long> vaccineIds) {
         for (Long vaccineId : vaccineIds) {
             Integer quantity = inventoryRepository.getAvailableQuantity(locationId, vaccineId);
@@ -207,6 +206,7 @@ public class AppointmentService {
             }
         }
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     public List<AppointmentResponse> getAllAppointments() {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.GetAllActiveAppointments();
@@ -214,55 +214,60 @@ public class AppointmentService {
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
+
     @PreAuthorize("hasRole('ADMIN') or @appointmentService.isOwner(#id, authentication.name)")
     public AppointmentResponse getAppointmentById(Long id) {
-        AppointmentEntity appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        AppointmentEntity appointment =
+                appointmentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
         return appointmentMapper.toAppointmentResponse(appointment);
     }
+
     @PreAuthorize("hasRole('ADMIN') or @userService.myInfo().id == #id")
     public List<AppointmentResponse> getAllAppointmentsByUserId(Long id) {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.findByUser_Id(id);
-        if(appointmentEntities.isEmpty()){
+        if (appointmentEntities.isEmpty()) {
             throw new AppException(ErrorCode.APPOINTMENT_NOT_FOUND);
         }
         return appointmentEntities.stream()
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     public List<AppointmentResponse> getAllAppointmentsByLocationId(Long id) {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.findByLocation_Id(id);
-        if(appointmentEntities.isEmpty()){
+        if (appointmentEntities.isEmpty()) {
             throw new AppException(ErrorCode.APPOINTMENT_NOT_FOUND);
         }
         return appointmentEntities.stream()
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     public AppointmentResponse updateAppointmentStatus(Long id, AppointmentStatus status) {
-        AppointmentEntity appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+        AppointmentEntity appointment =
+                appointmentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
         appointment.setAppointmentStatus(status);
         appointmentRepository.save(appointment);
         return appointmentMapper.toAppointmentResponse(appointment);
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     public List<AppointmentResponse> getAllAppointmentByDate(LocalDate date) {
         List<AppointmentEntity> appointmentEntities = appointmentRepository.findByAppointmentDate(date);
-        if(appointmentEntities.isEmpty()){
+        if (appointmentEntities.isEmpty()) {
             throw new AppException(ErrorCode.APPOINTMENT_NOT_FOUND);
         }
         return appointmentEntities.stream()
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
     }
+
     private BigDecimal calculateTotalPrice(List<VaccineEntity> vaccineEntities) {
-        return vaccineEntities.stream()
-                .map(VaccineEntity::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return vaccineEntities.stream().map(VaccineEntity::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
     private void saveAppointmentVaccines(AppointmentEntity appointment, List<VaccineEntity> vaccineEntities) {
         for (VaccineEntity vaccineEntity : vaccineEntities) {
             AppointmentVaccineEntity appointmentVaccineEntity = new AppointmentVaccineEntity();
@@ -271,13 +276,15 @@ public class AppointmentService {
             appointmentVaccineRepository.save(appointmentVaccineEntity);
         }
     }
-    private boolean checkAppointmentExists(Long id , LocalDate date , LocalTime time) {
+
+    private boolean checkAppointmentExists(Long id, LocalDate date, LocalTime time) {
         return appointmentRepository.existsByLocation_IdAndAppointmentDateAndAppointmentTime(id, date, time);
     }
+
     public boolean isOwner(Long appointmentId, String email) {
-        return appointmentRepository.findById(appointmentId)
+        return appointmentRepository
+                .findById(appointmentId)
                 .map(appointment -> appointment.getUser().getEmail().equals(email))
                 .orElse(false);
     }
-
 }

@@ -1,5 +1,17 @@
 package com.hieu.Booking_System.service.payment;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
+
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hieu.Booking_System.configuration.PayPalConfig;
@@ -17,18 +29,10 @@ import com.hieu.Booking_System.service.BrevoEmailService;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -40,9 +44,11 @@ public class PayPalStrategy implements PaymentStrategy {
     private final UserRepository userRepository;
     private final BrevoEmailService brevoEmailService;
     private final ObjectMapper objectMapper;
+
     @Override
     public String createPaymentUrl(Long appointmentId, HttpServletRequest request) throws Exception {
-        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+        AppointmentEntity appointment = appointmentRepository
+                .findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         // Tạo payment record
@@ -56,8 +62,7 @@ public class PayPalStrategy implements PaymentStrategy {
         paymentRepository.save(payment);
 
         // Convert VND to USD (tỷ giá xấp xỉ 1 USD = 24,000 VND)
-        BigDecimal amountUSD = appointment.getTotalPrice()
-                .divide(new BigDecimal("24000"), 2, RoundingMode.HALF_UP);
+        BigDecimal amountUSD = appointment.getTotalPrice().divide(new BigDecimal("24000"), 2, RoundingMode.HALF_UP);
 
         // Tạo PayPal Order
         OrderRequest orderRequest = new OrderRequest();
@@ -84,9 +89,7 @@ public class PayPalStrategy implements PaymentStrategy {
                         .currencyCode("USD")
                         .value(amountUSD.toString())
                         .amountBreakdown(new AmountBreakdown()
-                                .itemTotal(new Money()
-                                        .currencyCode("USD")
-                                        .value(amountUSD.toString()))));
+                                .itemTotal(new Money().currencyCode("USD").value(amountUSD.toString()))));
 
         // Items
         List<Item> items = new ArrayList<>();
@@ -94,9 +97,7 @@ public class PayPalStrategy implements PaymentStrategy {
                 .name("Appointment #" + appointmentId)
                 .description("Vaccination appointment")
                 .sku("APPT-" + appointmentId)
-                .unitAmount(new Money()
-                        .currencyCode("USD")
-                        .value(amountUSD.toString()))
+                .unitAmount(new Money().currencyCode("USD").value(amountUSD.toString()))
                 .quantity("1")
                 .category("DIGITAL_GOODS");
         items.add(item);
@@ -126,6 +127,7 @@ public class PayPalStrategy implements PaymentStrategy {
         log.info("✓ Created PayPal order: {}", order.id());
         return approvalUrl;
     }
+
     @Transactional
     public void processPayPalWebhook(String payload) {
         try {
@@ -141,7 +143,8 @@ public class PayPalStrategy implements PaymentStrategy {
                 String orderId = resource.path("id").asText();
 
                 // Tìm Payment trong DB bằng TransactionId (Order ID của PayPal)
-                PaymentEntity payment = paymentRepository.findByTransactionId(orderId)
+                PaymentEntity payment = paymentRepository
+                        .findByTransactionId(orderId)
                         .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
                 // Kiểm tra nếu đã hoàn thành rồi thì bỏ qua
@@ -155,7 +158,8 @@ public class PayPalStrategy implements PaymentStrategy {
                 HttpResponse<Order> response = payPalHttpClient.execute(ordersCaptureRequest);
                 Order order = response.result();
 
-                AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+                AppointmentEntity appointment = appointmentRepository
+                        .findById(payment.getAppointmentId())
                         .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
                 if ("COMPLETED".equals(order.status())) {
@@ -188,7 +192,8 @@ public class PayPalStrategy implements PaymentStrategy {
             }
 
             // Tìm payment
-            PaymentEntity payment = paymentRepository.findByTransactionId(token)
+            PaymentEntity payment = paymentRepository
+                    .findByTransactionId(token)
                     .orElseThrow(() -> new RuntimeException("Payment not found"));
 
             // Capture order
@@ -223,14 +228,17 @@ public class PayPalStrategy implements PaymentStrategy {
 
         return result;
     }
+
     private void sendConfirmationEmail(PaymentEntity payment) {
         try {
             // Lấy thông tin appointment
-            AppointmentEntity appointment = appointmentRepository.findById(payment.getAppointmentId())
+            AppointmentEntity appointment = appointmentRepository
+                    .findById(payment.getAppointmentId())
                     .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
             // Lấy thông tin user (giả sử AppointmentEntity có trường userId hoặc user)
-            UserEntity user = userRepository.findById(appointment.getUser().getId())
+            UserEntity user = userRepository
+                    .findById(appointment.getUser().getId())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
             // Gửi email
@@ -242,6 +250,7 @@ public class PayPalStrategy implements PaymentStrategy {
             // Không throw exception để không ảnh hưởng đến luồng thanh toán
         }
     }
+
     @Override
     public String getGatewayName() {
         return "PAYPAL";

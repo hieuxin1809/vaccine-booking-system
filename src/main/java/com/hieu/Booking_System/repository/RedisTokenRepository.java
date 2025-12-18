@@ -1,10 +1,9 @@
 package com.hieu.Booking_System.repository;
 
-import com.hieu.Booking_System.entity.RedisToken;
-import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import com.hieu.Booking_System.entity.RedisToken;
+
 @Repository
-public interface RedisTokenRepository extends CrudRepository<RedisToken, String> {
-}
+public interface RedisTokenRepository extends CrudRepository<RedisToken, String> {}
