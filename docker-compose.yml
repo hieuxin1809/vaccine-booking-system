@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # 1. Database MySQL
+  mysqldb:
+    image: mysql:8.0
+    container_name: booking-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Mật khẩu DB
+      MYSQL_DATABASE: booking_system
+    ports:
+      - "3308:3306" # Map ra port 3308 máy ngoài
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - booking-network
+
+  # 2. Redis Cache
+  redisdb:
+    image: redis:latest
+    container_name: booking-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - booking-network
+
+  # 3. App Spring Boot của bạn
+  app:
+    image: booking-system:v1  # Dùng cái image bạn vừa build xong
+    # Hoặc dùng dòng dưới để nó tự build lại nếu chưa có image
+    # build: .
+    container_name: booking-backend
+    restart: on-failure
+    ports:
+      - "8080:8080" # Web chạy ở cổng 8080
+    depends_on:
+      - mysqldb
+      - redisdb
+    environment:
+      # --- CẤU HÌNH ĐÈ LÊN FILE APPLICATION.YML ---
+      # Trong Docker, host không phải là 'localhost' mà là tên service ('mysqldb', 'redisdb')
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/booking_system?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATA_REDIS_HOST: redisdb
+      SPRING_DATA_REDIS_PORT: 6379
+    networks:
+      - booking-network
+
+volumes:
+  mysql_data:
+
+networks:
+  booking-network:

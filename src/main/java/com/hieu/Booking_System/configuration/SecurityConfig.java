@@ -46,7 +46,11 @@ public class SecurityConfig {
             "/vaccine/**",
             "/location/**",
             "/payment/vnpay_ipn",
-            "/payment/paypal/webhook"
+            "/payment/paypal/webhook",
+
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
     };
     private final CustomJwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsServiceCustomizer;
