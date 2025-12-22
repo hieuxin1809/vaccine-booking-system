@@ -178,6 +178,7 @@ public class PayPalStrategy implements PaymentStrategy {
         }
     }
 
+    @Transactional
     @Override
     public Map<String, String> handleCallback(Map<String, String> params) {
         Map<String, String> result = new HashMap<>();

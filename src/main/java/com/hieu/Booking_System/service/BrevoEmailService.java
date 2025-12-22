@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -51,7 +52,7 @@ public class BrevoEmailService {
                 .defaultHeader("api-key", apiKey)
                 .build();
     }
-
+	@Async
     public void sendVerificationEmail(UserEntity user, String token) {
         if (restClient == null) {
             log.error("RestClient chưa được khởi tạo!");
@@ -75,6 +76,7 @@ public class BrevoEmailService {
     /**
      * Gửi email xác nhận đặt lịch thành công
      */
+	@Async
     public void sendAppointmentConfirmationEmail(
             AppointmentEntity appointment, PaymentEntity payment, UserEntity user) {
         if (restClient == null) {

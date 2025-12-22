@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -25,6 +27,17 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 		WHERE a.deletedAt IS NULL
 	""")
     List<AppointmentEntity> GetAllActiveAppointments();
+	@Query(
+			"""
+        SELECT a
+        FROM AppointmentEntity a
+        JOIN FETCH a.user
+        JOIN FETCH a.location
+        LEFT JOIN FETCH a.appointmentVaccineEntities av
+        LEFT JOIN FETCH av.vaccine
+        WHERE a.deletedAt IS NULL
+    """)
+	Page<AppointmentEntity> getAllActiveAppointments(Pageable pageable);
 
     List<AppointmentEntity> findByUser_Id(Long id);
 

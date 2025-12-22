@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import com.hieu.Booking_System.model.response.PageResponse;
+import com.hieu.Booking_System.model.response.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -54,12 +56,14 @@ public class AppointmentController {
 
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    ApiResponse<List<AppointmentResponse>> getAllAppointment() {
-        return ApiResponse.<List<AppointmentResponse>>builder()
-                .data(appointmentService.getAllAppointments())
+    ApiResponse<PageResponse<AppointmentResponse>> getAllAppointment(
+            @RequestParam(defaultValue = "1") int page, // Mặc định là trang 1
+            @RequestParam(defaultValue = "10") int size // Mặc định lấy 10 người
+    ) {
+        return ApiResponse.<PageResponse<AppointmentResponse>>builder()
+                .data(appointmentService.getAllAppointment(page, size))
                 .build();
     }
-
     @DeleteMapping("/{appointmentId}")
     ApiResponse<AppointmentResponse> deleteAppointment(@PathVariable Long appointmentId) {
         appointmentService.deleteAppointment(appointmentId);

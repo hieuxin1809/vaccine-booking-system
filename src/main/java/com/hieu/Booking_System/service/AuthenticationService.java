@@ -33,6 +33,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +46,7 @@ public class AuthenticationService {
     PasswordEncoder passwordEncoder;
     BrevoEmailService brevoEmailService;
     AuthenticationManager authenticationManager;
-
+    @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_EXIST);

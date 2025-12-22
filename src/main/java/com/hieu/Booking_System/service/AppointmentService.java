@@ -11,10 +11,17 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.hieu.Booking_System.aspect.LogTime;
+import com.hieu.Booking_System.model.response.PageResponse;
+import com.hieu.Booking_System.model.response.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -56,6 +63,7 @@ public class AppointmentService {
     InventoryService inventoryService;
     RedissonClient redisson;
 
+    @LogTime
     public Map<String, Object> createAppointmentWithPayment(
             AppointmentCreateRequest request, PaymentGateway paymentGateway, HttpServletRequest httpRequest) {
 
@@ -136,11 +144,10 @@ public class AppointmentService {
     public void cancelStalePendingAppointments() {
         log.info("Running scheduled job: Cancelling stale pending appointments...");
 
-        // Đặt thời gian hết hạn (ví dụ: 20 phút)
+        // Đặt thời gian hết hạn
         LocalDateTime expirationTime = LocalDateTime.now().minusMinutes(20);
 
-        // 1. Tìm trực tiếp các APPOINTMENT bị PENDING
-        // (Bạn cần thêm phương thức này vào AppointmentRepository)
+        //Tìm trực tiếp các APPOINTMENT bị PENDING
         List<AppointmentEntity> staleAppointments = appointmentRepository.findAllByAppointmentStatusAndCreatedAtBefore(
                 AppointmentStatus.PENDING, expirationTime);
 
@@ -152,11 +159,11 @@ public class AppointmentService {
         log.info("Found {} stale pending appointments to cancel.", staleAppointments.size());
 
         for (AppointmentEntity appointment : staleAppointments) {
-            // 2. Hủy Appointment
+            //Hủy Appointment
             appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
             appointmentRepository.save(appointment);
 
-            // 3. Hủy Payment liên quan (nếu có)
+            //Hủy Payment liên quan
             PaymentEntity payment =
                     paymentRepository.findByAppointmentId(appointment.getId()).orElse(null);
             if (payment != null && payment.getPaymentStatus() == PaymentStatus.PENDING) {
@@ -164,7 +171,7 @@ public class AppointmentService {
                 paymentRepository.save(payment);
             }
 
-            // 4. (QUAN TRỌNG NHẤT) Hoàn trả kho
+            //Hoàn trả kho
             List<Long> vaccineIds = appointment.getAppointmentVaccineEntities().stream()
                     .map(av -> av.getVaccine().getId())
                     .toList();
@@ -206,13 +213,22 @@ public class AppointmentService {
             }
         }
     }
-
+    @LogTime
     @PreAuthorize("hasRole('ADMIN')")
-    public List<AppointmentResponse> getAllAppointments() {
-        List<AppointmentEntity> appointmentEntities = appointmentRepository.GetAllActiveAppointments();
-        return appointmentEntities.stream()
+    public PageResponse<AppointmentResponse> getAllAppointment(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<AppointmentEntity> pageData = appointmentRepository.getAllActiveAppointments(pageable);
+
+        List<AppointmentResponse> appointmentResponseList = pageData.getContent().stream()
                 .map(appointmentMapper::toAppointmentResponse)
                 .collect(Collectors.toList());
+        return PageResponse.<AppointmentResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalElements(pageData.getTotalElements())
+                .data(appointmentResponseList)
+                .build();
     }
 
     @PreAuthorize("hasRole('ADMIN') or @appointmentService.isOwner(#id, authentication.name)")

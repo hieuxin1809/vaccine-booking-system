@@ -2,6 +2,8 @@ package com.hieu.Booking_System.controller;
 
 import java.util.List;
 
+import com.hieu.Booking_System.enums.UserStatus;
+import com.hieu.Booking_System.model.response.PageResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,15 +40,13 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping()
-    @PreAuthorize("hasRole('ADMIN')")
-    ApiResponse<List<UserResponse>> getAllUsers() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        log.info(authentication.getName());
-        log.info(authentication.getPrincipal().toString());
-        return ApiResponse.<List<UserResponse>>builder()
-                .data(userService.getAllUsers())
+    @GetMapping
+    public ApiResponse<PageResponse<UserResponse>> getAllUsers(
+            @RequestParam(defaultValue = "1") int page, // Mặc định là trang 1
+            @RequestParam(defaultValue = "10") int size // Mặc định lấy 10 người
+    ) {
+        return ApiResponse.<PageResponse<UserResponse>>builder()
+                .data(userService.getAllUsers(page, size))
                 .build();
     }
 
@@ -89,6 +89,18 @@ public class UserController {
     public ApiResponse<UserResponse> updateAvatar(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
         return ApiResponse.<UserResponse>builder()
                 .data(userService.uploadAvatar(userId, file))
+                .build();
+    }
+    @GetMapping("/search")
+    public ApiResponse<PageResponse<UserResponse>> searchUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) UserStatus status,
+            @RequestParam(required = false) String role
+    ) {
+        return ApiResponse.<PageResponse<UserResponse>>builder()
+                .data(userService.getUsersWithSpec(page, size, keyword, status, role))
                 .build();
     }
 }

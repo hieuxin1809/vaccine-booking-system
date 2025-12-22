@@ -9,13 +9,15 @@ import jakarta.persistence.*;
 
 import com.hieu.Booking_System.enums.AppointmentStatus;
 
-import lombok.Data;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Table(name = "appointment")
+@Getter
 @Setter
-@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "appointment")
 public class AppointmentEntity extends BaseEntity {
 
     @Column(name = "appointment_date", nullable = false)

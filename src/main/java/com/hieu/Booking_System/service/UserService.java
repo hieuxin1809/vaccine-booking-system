@@ -6,15 +6,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.hieu.Booking_System.aspect.LogTime;
+import com.hieu.Booking_System.enums.UserStatus;
+import com.hieu.Booking_System.model.response.PageResponse;
+import com.hieu.Booking_System.specification.UserSpecification;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hieu.Booking_System.entity.RoleEntity;
@@ -63,12 +73,30 @@ public class UserService {
         userRepository.save(userEntity);
         return userMapper.toUserResponse(userEntity);
     }
-
+    @LogTime
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserResponse> getAllUsers() {
-        log.info("in method getAllUsers");
-        List<UserEntity> userEntities = userRepository.GetAllActiveUser();
-        return userEntities.stream().map(userMapper::toUserResponse).collect(Collectors.toList());
+    public PageResponse<UserResponse> getAllUsers(int page, int size) {
+        log.info("in method getAllUsers with page: {} and size: {}", page, size);
+
+        // Sort.by("createdAt").descending()
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+
+        // 2. Gọi Repository
+        Page<UserEntity> pageData = userRepository.findAllActiveUsers(pageable);
+
+        // 3. Map Entity sang Response
+        List<UserResponse> userList = pageData.getContent().stream()
+                .map(userMapper::toUserResponse)
+                .collect(Collectors.toList());
+
+        // 4. Trả về kết quả chuẩn
+        return PageResponse.<UserResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalElements(pageData.getTotalElements())
+                .data(userList)
+                .build();
     }
 
     @Cacheable(value = "users", key = "#userId")
@@ -147,6 +175,47 @@ public class UserService {
         // 4. Trả về response (phải khớp với kiểu của @CachePut)
         log.info("User {} updated avatar successfully", userId);
         return userMapper.toUserResponse(user);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<UserResponse> getUsersWithSpec(int page, int size, String keyword, UserStatus status, String roleName) {
+        Sort sort = Sort.by("createAt").descending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        // 1. Khởi tạo Specification rỗng (hoặc điều kiện mặc định là chưa xóa)
+        Specification<UserEntity> spec = (root, query, cb) ->
+                cb.isNull(root.get("deletedAt")); // Luôn lọc user chưa bị xóa mềm
+
+        // 2. Ghép điều kiện KEYWORD (nếu có)
+        if (StringUtils.hasText(keyword)) {
+            spec = spec.and(UserSpecification.hasKeyword(keyword));
+        }
+
+        // 3. Ghép điều kiện STATUS (nếu có)
+        if (status != null) {
+            spec = spec.and(UserSpecification.hasStatus(status));
+        }
+
+        // 4. Ghép điều kiện ROLE (nếu có)
+//        if (StringUtils.hasText(roleName)) {
+//            spec = spec.and(UserSpecification.hasRole(roleName));
+//        }
+        System.out.println(spec);
+        // 5. Gọi Repository (Repository sẽ tự generate câu SQL tương ứng)
+        Page<UserEntity> pageData = userRepository.findAll(spec, pageable);
+
+        // 6. Map dữ liệu trả về (Giữ nguyên logic cũ)
+        List<UserResponse> userList = pageData.getContent().stream()
+                .map(userMapper::toUserResponse)
+                .collect(Collectors.toList());
+
+        return PageResponse.<UserResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalElements(pageData.getTotalElements())
+                .data(userList)
+                .build();
     }
 
     public UserResponse uploadAvatarFallback(Long userId, MultipartFile file, Throwable throwable) {

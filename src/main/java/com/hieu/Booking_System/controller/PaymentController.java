@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.hieu.Booking_System.aspect.LogTime;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/payment")
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentController {
+public class    PaymentController {
 
     private final PaymentService paymentService;
 
@@ -86,13 +87,13 @@ public class PaymentController {
         return redirectToFrontend(result);
     }
 
+    @LogTime
     @GetMapping("/vnpay_ipn")
     public VNPayIpnResponse vnpayIpn(HttpServletRequest request) {
         log.info("========== VNPAY IPN ==========");
         Map<String, String> params = extractParams(request);
         return paymentService.processVNPayIPN(params);
     }
-
     @PostMapping("/paypal/webhook")
     public ApiResponse<Void> paypalWebhook(@RequestBody String payload) {
         log.info("========== PAYPAL WEBHOOK ==========");
