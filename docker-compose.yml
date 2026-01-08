@@ -7,7 +7,7 @@ services:
     container_name: booking-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD:   # Mật khẩu DB
+      MYSQL_ROOT_PASSWORD: root   # Mật khẩu DB
       MYSQL_DATABASE: booking_system
     ports:
       - "3308:3306" # Map ra port 3308 máy ngoài
@@ -28,9 +28,9 @@ services:
 
   # 3. App Spring Boot của bạn
   app:
-    image: booking-system:v1  # Dùng cái image bạn vừa build xong
+    #image: booking-system:v1  # Dùng cái image bạn vừa build xong
     # Hoặc dùng dòng dưới để nó tự build lại nếu chưa có image
-    # build: .
+    build: .
     container_name: booking-backend
     restart: on-failure
     ports:
